@@ -1,0 +1,13 @@
+# Local Pi runtime state
+.atl/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Django
+db.sqlite3
+media/
+.env
