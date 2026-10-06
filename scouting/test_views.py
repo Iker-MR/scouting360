@@ -58,7 +58,7 @@ class JugadorCreacionTests(APITestCase):
     def test_anonimo_no_puede_crear(self):
         response = self.client.post(LISTA_URL, DATOS_JUGADOR, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertFalse(Jugador.objects.exists())
 
     def test_crea_jugador_asignado_al_usuario_autenticado(self):
