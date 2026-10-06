@@ -1,3 +1,4 @@
+from django.db import IntegrityError, transaction
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ValidationError
 
@@ -15,6 +16,10 @@ class JugadorViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # Each user owns at most one player profile (OneToOne on usuario).
-        if Jugador.objects.filter(usuario=self.request.user).exists():
+        # The DB unique constraint is the source of truth: a pre-check with
+        # exists() would still race with concurrent requests.
+        try:
+            with transaction.atomic():
+                serializer.save(usuario=self.request.user)
+        except IntegrityError:
             raise ValidationError({"usuario": "Este usuario ya tiene un perfil de jugador."})
-        serializer.save(usuario=self.request.user)

@@ -1,4 +1,7 @@
+from unittest import mock
+
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -79,6 +82,19 @@ class JugadorCreacionTests(APITestCase):
         response = self.client.post(LISTA_URL, DATOS_JUGADOR, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Jugador.objects.count(), 1)
+
+    def test_carrera_al_crear_perfil_devuelve_400(self):
+        # Simulates two concurrent requests: the pre-check does not see the
+        # profile the other request just inserted, so the DB constraint fires.
+        self.client.force_authenticate(self.usuario)
+        self.client.post(LISTA_URL, DATOS_JUGADOR, format="json")
+
+        with mock.patch.object(QuerySet, "exists", return_value=False):
+            response = self.client.post(LISTA_URL, DATOS_JUGADOR, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("usuario", response.data)
         self.assertEqual(Jugador.objects.count(), 1)
 
 
