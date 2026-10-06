@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 COOKIE = settings.JWT_REFRESH_COOKIE
@@ -56,6 +57,13 @@ class LogoutView(APIView):
     permission_classes = ()
 
     def post(self, request):
+        refresh = request.COOKIES.get(COOKIE["NAME"])
+        if refresh:
+            try:
+                RefreshToken(refresh).blacklist()
+            except TokenError:
+                pass  # Already invalid, expired or blacklisted: nothing to revoke.
+
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(
             COOKIE["NAME"], path=COOKIE["PATH"], samesite=COOKIE["SAMESITE"]

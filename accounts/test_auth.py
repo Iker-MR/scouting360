@@ -77,6 +77,47 @@ class JWTTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_refresh_rota_el_refresh_en_la_cookie(self):
+        refresh_viejo = self.login().cookies[COOKIE].value
+
+        response = self.client.post(REFRESH_URL)
+
+        refresh_nuevo = response.cookies[COOKIE].value
+        self.assertTrue(refresh_nuevo)
+        self.assertNotEqual(refresh_nuevo, refresh_viejo)
+        self.assertTrue(response.cookies[COOKIE]["httponly"])
+        self.assertNotIn("refresh", response.data)
+
+    def test_refresh_rotado_ya_no_sirve(self):
+        refresh_viejo = self.login().cookies[COOKIE].value
+        self.client.post(REFRESH_URL)
+        self.client.cookies[COOKIE] = refresh_viejo
+
+        response = self.client.post(REFRESH_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_invalida_el_refresh(self):
+        refresh = self.login().cookies[COOKIE].value
+        self.client.post(LOGOUT_URL)
+        self.client.cookies[COOKIE] = refresh
+
+        response = self.client.post(REFRESH_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_sin_cookie_responde_204(self):
+        response = self.client.post(LOGOUT_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_logout_con_cookie_invalida_responde_204(self):
+        self.client.cookies[COOKIE] = "token-falso"
+
+        response = self.client.post(LOGOUT_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
     def test_logout_borra_la_cookie(self):
         self.login()
 
