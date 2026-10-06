@@ -1,0 +1,63 @@
+from django.conf import settings
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+COOKIE = settings.JWT_REFRESH_COOKIE
+
+
+def set_refresh_cookie(response, refresh):
+    response.set_cookie(
+        COOKIE["NAME"],
+        refresh,
+        max_age=int(api_settings.REFRESH_TOKEN_LIFETIME.total_seconds()),
+        path=COOKIE["PATH"],
+        secure=COOKIE["SECURE"],
+        httponly=True,
+        samesite=COOKIE["SAMESITE"],
+    )
+
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    """Returns the access token in the body and the refresh token in an httpOnly cookie."""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        set_refresh_cookie(response, response.data.pop("refresh"))
+        return response
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    """Reads the refresh token only from the cookie, never from the request body."""
+
+    def post(self, request, *args, **kwargs):
+        refresh = request.COOKIES.get(COOKIE["NAME"])
+        if not refresh:
+            raise InvalidToken("Refresh token cookie not found.")
+
+        serializer = self.get_serializer(data={"refresh": refresh})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0]) from e
+
+        data = dict(serializer.validated_data)
+        response = Response(data, status=status.HTTP_200_OK)
+        if "refresh" in data:
+            set_refresh_cookie(response, data.pop("refresh"))
+        return response
+
+
+class LogoutView(APIView):
+    authentication_classes = ()
+    permission_classes = ()
+
+    def post(self, request):
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(
+            COOKIE["NAME"], path=COOKIE["PATH"], samesite=COOKIE["SAMESITE"]
+        )
+        return response

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'scouting',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -150,10 +151,20 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
+# The refresh token travels only in this httpOnly cookie, scoped to the auth endpoints.
+# If the SPA is served from a different site in production, SAMESITE must be 'None'.
+JWT_REFRESH_COOKIE = {
+    'NAME': 'refresh_token',
+    'PATH': '/api/auth/',
+    'SECURE': not DEBUG,
+    'SAMESITE': 'Lax',
+}
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Email
