@@ -1,27 +1,29 @@
+import { Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
 import { LoginPage } from './auth/LoginPage'
 import { useAuth } from './auth/useAuth'
+import { JugadoresPage } from './jugadores/JugadoresPage'
+import { AppHeader } from './layout/AppHeader'
 
-function AppContent() {
-  const { status, logout } = useAuth()
+function LoginRoute() {
+  const { status } = useAuth()
 
   if (status === 'checking') return <p>Cargando...</p>
-  if (status === 'anonymous') return <LoginPage />
-
-  return (
-    <main>
-      <p>Has iniciado sesión</p>
-      <button type="button" onClick={() => void logout()}>
-        Cerrar sesión
-      </button>
-    </main>
-  )
+  if (status === 'authenticated') return <Navigate to="/jugadores" replace />
+  return <LoginPage />
 }
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <AppHeader />
+      <main>
+        <Routes>
+          <Route path="/jugadores" element={<JugadoresPage />} />
+          <Route path="/login" element={<LoginRoute />} />
+          <Route path="*" element={<Navigate to="/jugadores" replace />} />
+        </Routes>
+      </main>
     </AuthProvider>
   )
 }

@@ -109,3 +109,119 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Layout */
+#root {
+  text-align: left;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header__brand {
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+main {
+  padding: 0 24px 32px;
+}
+
+/* Jugadores */
+.jugadores-page h1 {
+  font-size: 32px;
+  margin: 24px 0 16px;
+}
+
+.jugadores-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.jugadores-filters label {
+  display: block;
+  font-size: 14px;
+}
+
+.jugadores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.jugador-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.jugador-card__foto {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.jugador-card__foto--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.jugador-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.jugador-card__body h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.jugador-card__overall {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.badge--ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.badge--off {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
