@@ -52,6 +52,8 @@ export function JugadoresPage() {
   }, [searchText, search, updateParams])
 
   const { data, status, retry } = useJugadores({ page, search, posicion })
+  const query = searchParams.toString()
+  const listSearch = query ? `?${query}` : ''
 
   return (
     <section className="jugadores-page">
@@ -83,7 +85,7 @@ export function JugadoresPage() {
           <p>{data.count === 1 ? '1 jugador' : `${data.count} jugadores`}</p>
           <div className="jugadores-grid">
             {data.results.map((jugador) => (
-              <JugadorCard key={jugador.id} jugador={jugador} />
+              <JugadorCard key={jugador.id} jugador={jugador} listSearch={listSearch} />
             ))}
           </div>
           <Pagination

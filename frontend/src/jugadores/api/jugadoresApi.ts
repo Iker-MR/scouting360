@@ -74,3 +74,17 @@ export async function listJugadores(
   if (!response.ok) throw new Error(`Failed to load jugadores (${response.status})`)
   return (await response.json()) as Page<Jugador>
 }
+
+export class JugadorNotFoundError extends Error {
+  constructor() {
+    super('Jugador not found')
+    this.name = 'JugadorNotFoundError'
+  }
+}
+
+export async function getJugador(fetcher: AuthFetch, id: number): Promise<Jugador> {
+  const response = await fetcher(`/api/jugadores/${id}/`)
+  if (response.status === 404) throw new JugadorNotFoundError()
+  if (!response.ok) throw new Error(`Failed to load jugador (${response.status})`)
+  return (await response.json()) as Jugador
+}

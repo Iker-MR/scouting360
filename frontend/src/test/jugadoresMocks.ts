@@ -50,3 +50,20 @@ export function mockJugadores(
   )
   return requests
 }
+
+// Registers a GET /api/jugadores/:id/ handler and records every requested URL.
+export function mockJugador(
+  id: number,
+  respond: (url: URL) => Response | Promise<Response> = () =>
+    HttpResponse.json(buildJugador({ id })),
+) {
+  const requests: URL[] = []
+  server.use(
+    http.get(`/api/jugadores/${id}/`, ({ request }) => {
+      const url = new URL(request.url)
+      requests.push(url)
+      return respond(url)
+    }),
+  )
+  return requests
+}

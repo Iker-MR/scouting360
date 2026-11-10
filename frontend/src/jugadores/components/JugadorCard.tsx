@@ -1,15 +1,14 @@
+import { Link } from 'react-router'
 import type { Jugador } from '../api/jugadoresApi'
+import { initials } from './initials'
 
-function initials(nombre: string) {
-  return nombre
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('')
+interface JugadorCardProps {
+  jugador: Jugador
+  // Current list query string; the detail page uses it to return to the same filtered list.
+  listSearch?: string
 }
 
-export function JugadorCard({ jugador }: { jugador: Jugador }) {
+export function JugadorCard({ jugador, listSearch = '' }: JugadorCardProps) {
   return (
     <article className="jugador-card">
       {jugador.foto ? (
@@ -20,7 +19,11 @@ export function JugadorCard({ jugador }: { jugador: Jugador }) {
         </div>
       )}
       <div className="jugador-card__body">
-        <h2>{jugador.nombre}</h2>
+        <h2>
+          <Link to={`/jugadores/${jugador.id}`} state={{ listSearch }}>
+            {jugador.nombre}
+          </Link>
+        </h2>
         <p>{jugador.posicion_display}</p>
         <p className="jugador-card__overall">{jugador.overall ?? '—'}</p>
         <p>{jugador.zona}</p>
