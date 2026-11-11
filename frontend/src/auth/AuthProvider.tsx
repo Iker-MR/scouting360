@@ -6,6 +6,7 @@ import { AuthContext, type AuthStatus } from './AuthContext'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('checking')
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [user, setUser] = useState<authApi.CurrentUser | null>(null)
   // authFetch reads the token from this ref so it never sees a stale render value.
   const accessTokenRef = useRef<string | null>(null)
 
@@ -14,6 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessTokenRef.current = token
     setAccessToken(token)
     setStatus(token ? 'authenticated' : 'anonymous')
+    if (!token) setUser(null)
   }, [])
 
   // createAuthFetch only stores these callbacks; the ref is read when a request
@@ -40,6 +42,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [setSession])
 
+  // Keyed on having a session, not on the token: a silent token refresh must
+  // not refetch the current user.
+  const hasSession = status === 'authenticated'
+  useEffect(() => {
+    if (!hasSession) return
+    let cancelled = false
+    authApi
+      .getMe(authFetch)
+      .catch(() => null)
+      .then((me) => {
+        if (!cancelled) setUser(me)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [hasSession, authFetch])
+
   const login = useCallback(
     async (username: string, password: string) => {
       setSession(await authApi.login(username, password))
@@ -56,8 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setSession])
 
   const value = useMemo(
-    () => ({ status, accessToken, login, logout, authFetch }),
-    [status, accessToken, login, logout, authFetch],
+    () => ({ status, accessToken, user, login, logout, authFetch }),
+    [status, accessToken, user, login, logout, authFetch],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

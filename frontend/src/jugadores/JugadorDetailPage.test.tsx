@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import type { ReactNode } from 'react'
 import { Link, MemoryRouter } from 'react-router'
 import App from '../App'
+import { mockMe } from '../test/authMocks'
 import { server } from '../test/server'
 import { buildJugador, mockJugador, mockJugadores, pageResponse } from '../test/jugadoresMocks'
 
@@ -26,7 +27,11 @@ function renderAt(route: string, extra?: ReactNode) {
   )
 }
 
-beforeEach(() => mockRefresh(false))
+beforeEach(() => {
+  mockRefresh(false)
+  // Default current user; tests that care about ownership override it.
+  mockMe()
+})
 
 describe('Detalle de jugador', () => {
   it('muestra los datos del jugador', async () => {
@@ -252,6 +257,43 @@ describe('Detalle de jugador', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Jugador Nuevo' })).toBeInTheDocument()
     expect(screen.queryByText('Jugador Viejo')).not.toBeInTheDocument()
+  })
+})
+
+describe('Editar perfil propio', () => {
+  it('muestra "Editar perfil" en el perfil propio', async () => {
+    mockRefresh(true)
+    mockMe({ jugador_id: 41 })
+    mockJugador(41, () => HttpResponse.json(buildJugador({ id: 41, nombre: 'Ana Ruiz' })))
+    renderAt('/jugadores/41')
+
+    expect(await screen.findByRole('link', { name: 'Editar perfil' })).toHaveAttribute(
+      'href',
+      '/jugadores/41/editar',
+    )
+  })
+
+  it('no muestra "Editar perfil" en el perfil de otro jugador', async () => {
+    mockRefresh(true)
+    const meRequests = mockMe({ jugador_id: 99 })
+    mockJugador(42, () => HttpResponse.json(buildJugador({ id: 42, nombre: 'Ana Ruiz' })))
+    renderAt('/jugadores/42')
+
+    await screen.findByRole('heading', { level: 1, name: 'Ana Ruiz' })
+    // Wait until the current user is known: otherwise the button would be
+    // missing just because /me/ has not answered yet.
+    await waitFor(() => expect(meRequests).toHaveLength(1))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.queryByRole('link', { name: 'Editar perfil' })).not.toBeInTheDocument()
+  })
+
+  it('no muestra "Editar perfil" a un visitante anónimo', async () => {
+    mockJugador(43, () => HttpResponse.json(buildJugador({ id: 43, nombre: 'Ana Ruiz' })))
+    renderAt('/jugadores/43')
+
+    await screen.findByRole('heading', { level: 1, name: 'Ana Ruiz' })
+    expect(await screen.findByRole('link', { name: 'Iniciar sesión' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Editar perfil' })).not.toBeInTheDocument()
   })
 })
 

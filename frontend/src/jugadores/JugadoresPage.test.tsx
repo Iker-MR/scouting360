@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router'
 import App from '../App'
+import { mockMe } from '../test/authMocks'
 import { server } from '../test/server'
 import { buildJugador, mockJugadores, pageResponse } from '../test/jugadoresMocks'
 
@@ -24,7 +25,10 @@ function renderAt(route = '/jugadores') {
   )
 }
 
-beforeEach(() => mockRefresh(false))
+beforeEach(() => {
+  mockRefresh(false)
+  mockMe()
+})
 
 describe('Listado de jugadores', () => {
   it('pide el listado una sola vez a un visitante anonimo', async () => {

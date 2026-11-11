@@ -1,4 +1,5 @@
 import { Link, useLocation, useParams } from 'react-router'
+import { useAuth } from '../auth/useAuth'
 import { JugadorDetail } from './components/JugadorDetail'
 import { useJugador } from './hooks/useJugador'
 
@@ -19,6 +20,7 @@ export function JugadorDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const { data, status, retry } = useJugador(parseId(id))
+  const { user } = useAuth()
   const back = <Link to={listPath(location.state)}>Volver al listado</Link>
 
   return (
@@ -36,7 +38,12 @@ export function JugadorDetailPage() {
         </div>
       )}
 
-      {status === 'success' && <JugadorDetail jugador={data} />}
+      {status === 'success' && (
+        <JugadorDetail
+          jugador={data}
+          editPath={user?.jugador_id === data.id ? `/jugadores/${data.id}/editar` : undefined}
+        />
+      )}
 
       <p className="jugador-detail-page__back">{back}</p>
     </section>

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import type { Atributos, Jugador } from '../api/jugadoresApi'
 import { calcularEdad } from '../utils/calcularEdad'
 import { initials } from './initials'
@@ -13,7 +14,13 @@ const ATRIBUTOS: Array<[keyof Atributos, string]> = [
 
 const PIERNAS = { D: 'Derecha', I: 'Zurda' } as const
 
-export function JugadorDetail({ jugador }: { jugador: Jugador }) {
+interface JugadorDetailProps {
+  jugador: Jugador
+  /** When set, shows an "Editar perfil" link to this path. */
+  editPath?: string
+}
+
+export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
   const edad = calcularEdad(jugador.fecha_nacimiento)
   const { atributos } = jugador
 
@@ -36,6 +43,11 @@ export function JugadorDetail({ jugador }: { jugador: Jugador }) {
           <span className={`badge ${jugador.disponible ? 'badge--ok' : 'badge--off'}`}>
             {jugador.disponible ? 'Disponible' : 'No disponible'}
           </span>
+          {editPath && (
+            <Link className="jugador-detail__edit" to={editPath}>
+              Editar perfil
+            </Link>
+          )}
         </div>
       </header>
 

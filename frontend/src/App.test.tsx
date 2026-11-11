@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse, delay } from 'msw'
 import { MemoryRouter } from 'react-router'
+import { mockMe } from './test/authMocks'
 import { server } from './test/server'
 import { buildJugador, mockJugadores, pageResponse } from './test/jugadoresMocks'
 import App from './App'
@@ -60,6 +61,7 @@ function renderAt(route = '/jugadores') {
 }
 
 beforeEach(() => {
+  mockMe()
   mockJugadores(() => pageResponse([buildJugador({ nombre: 'Ana Ruiz' })]))
 })
 

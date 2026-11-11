@@ -1,3 +1,11 @@
+import type { AuthFetch } from './authFetch'
+
+export interface CurrentUser {
+  id: number
+  username: string
+  jugador_id: number | null
+}
+
 export class InvalidCredentialsError extends Error {
   constructor() {
     super('Invalid username or password')
@@ -48,4 +56,10 @@ async function requestRefresh(): Promise<string | null> {
 export async function logout(): Promise<void> {
   const response = await postJson('/api/auth/logout/')
   if (!response.ok) throw new Error(`Logout failed with status ${response.status}`)
+}
+
+export async function getMe(fetcher: AuthFetch): Promise<CurrentUser> {
+  const response = await fetcher('/api/auth/me/')
+  if (!response.ok) throw new Error(`Current user request failed with status ${response.status}`)
+  return (await response.json()) as CurrentUser
 }
