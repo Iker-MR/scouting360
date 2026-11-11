@@ -34,3 +34,17 @@ class RegistroSerializer(serializers.ModelSerializer):
                 return User.objects.create_user(**validated_data)
         except IntegrityError:
             raise serializers.ValidationError({"username": [USERNAME_TAKEN]})
+
+
+class MeSerializer(serializers.ModelSerializer):
+    jugador_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "jugador_id"]
+
+    def get_jugador_id(self, user):
+        # A user without a profile raises RelatedObjectDoesNotExist, which is
+        # also an AttributeError, so getattr's default covers it.
+        jugador = getattr(user, "jugador", None)
+        return jugador.pk if jugador else None

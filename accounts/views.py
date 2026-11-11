@@ -8,7 +8,7 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import RegistroSerializer
+from .serializers import MeSerializer, RegistroSerializer
 
 COOKIE = settings.JWT_REFRESH_COOKIE
 
@@ -61,6 +61,16 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "register"
+
+
+class MeView(generics.RetrieveAPIView):
+    """Returns the authenticated user and the id of their player profile, if any."""
+
+    serializer_class = MeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 class LogoutView(APIView):
