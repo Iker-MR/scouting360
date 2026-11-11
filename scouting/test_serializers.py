@@ -43,14 +43,14 @@ class JugadorSerializerEscrituraTests(TestCase):
     def setUp(self):
         self.usuario = get_user_model().objects.create_user(username="nuevo", password="x")
 
-    def test_crea_jugador_con_atributos(self):
+    # Atributos are set by scouts, never by the player through this serializer.
+    def test_ignora_atributos_al_crear(self):
         serializer = JugadorSerializer(data={**DATOS_JUGADOR, "atributos": ATRIBUTOS})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
         jugador = serializer.save(usuario=self.usuario)
 
-        self.assertEqual(jugador.atributos.regate, 85)
-        self.assertEqual(jugador.overall, 69)
+        self.assertFalse(Atributos.objects.filter(jugador=jugador).exists())
 
     def test_crea_jugador_sin_atributos(self):
         serializer = JugadorSerializer(data=DATOS_JUGADOR)
@@ -59,14 +59,6 @@ class JugadorSerializerEscrituraTests(TestCase):
         jugador = serializer.save(usuario=self.usuario)
 
         self.assertFalse(Atributos.objects.filter(jugador=jugador).exists())
-
-    def test_rechaza_atributo_fuera_de_rango(self):
-        serializer = JugadorSerializer(
-            data={**DATOS_JUGADOR, "atributos": {**ATRIBUTOS, "ritmo": 100}}
-        )
-
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("ritmo", serializer.errors["atributos"])
 
     def test_ignora_usuario_enviado_por_el_cliente(self):
         otro = get_user_model().objects.create_user(username="otro", password="x")
@@ -77,7 +69,7 @@ class JugadorSerializerEscrituraTests(TestCase):
 
         self.assertEqual(jugador.usuario, self.usuario)
 
-    def test_actualizacion_parcial_modifica_atributos_existentes(self):
+    def test_ignora_atributos_al_actualizar(self):
         jugador = crear_jugador()
         Atributos.objects.create(jugador=jugador, **ATRIBUTOS)
 
@@ -88,14 +80,13 @@ class JugadorSerializerEscrituraTests(TestCase):
         serializer.save()
 
         jugador.atributos.refresh_from_db()
-        self.assertEqual(jugador.atributos.tiro, 90)
-        self.assertEqual(jugador.atributos.ritmo, 80)
+        self.assertEqual(jugador.atributos.tiro, 75)
 
-    def test_actualizacion_crea_atributos_si_no_existian(self):
+    def test_no_crea_atributos_al_actualizar(self):
         jugador = crear_jugador()
 
         serializer = JugadorSerializer(jugador, data={"atributos": ATRIBUTOS}, partial=True)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         serializer.save()
 
-        self.assertEqual(Atributos.objects.get(jugador=jugador).pase, 70)
+        self.assertFalse(Atributos.objects.filter(jugador=jugador).exists())

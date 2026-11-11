@@ -1,4 +1,3 @@
-from django.db import transaction
 from rest_framework import serializers
 
 from .models import Atributos, Jugador
@@ -11,7 +10,8 @@ class AtributosSerializer(serializers.ModelSerializer):
 
 
 class JugadorSerializer(serializers.ModelSerializer):
-    atributos = AtributosSerializer(required=False, allow_null=True)
+    # Players never rate themselves: atributos are set by scouts.
+    atributos = AtributosSerializer(read_only=True)
     overall = serializers.IntegerField(read_only=True)
     posicion_display = serializers.CharField(source="get_posicion_display", read_only=True)
 
@@ -36,19 +36,3 @@ class JugadorSerializer(serializers.ModelSerializer):
         ]
         # The owner comes from the authenticated request, never from the payload.
         read_only_fields = ["usuario", "creado"]
-
-    @transaction.atomic
-    def create(self, validated_data):
-        atributos_data = validated_data.pop("atributos", None)
-        jugador = super().create(validated_data)
-        if atributos_data is not None:
-            Atributos.objects.create(jugador=jugador, **atributos_data)
-        return jugador
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        atributos_data = validated_data.pop("atributos", None)
-        jugador = super().update(instance, validated_data)
-        if atributos_data is not None:
-            Atributos.objects.update_or_create(jugador=jugador, defaults=atributos_data)
-        return jugador
