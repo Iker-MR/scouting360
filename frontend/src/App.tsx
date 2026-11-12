@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthProvider'
 import { LoginPage } from './auth/LoginPage'
 import { useAuth } from './auth/useAuth'
 import { JugadorDetailPage } from './jugadores/JugadorDetailPage'
+import { JugadorEditPage } from './jugadores/JugadorEditPage'
 import { JugadoresPage } from './jugadores/JugadoresPage'
 import { AppHeader } from './layout/AppHeader'
 
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route path="/jugadores" element={<JugadoresPage />} />
           <Route path="/jugadores/:id" element={<JugadorDetailPage />} />
+          <Route path="/jugadores/:id/editar" element={<JugadorEditPage />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="*" element={<Navigate to="/jugadores" replace />} />
         </Routes>
