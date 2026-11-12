@@ -229,9 +229,12 @@ describe('Detalle de jugador', () => {
     )
     renderAt('/jugadores/13')
 
-    expect(await screen.findByText('Ana Ruiz')).toBeInTheDocument()
+    // Wait for the final state first: the anonymous render of "Ana Ruiz" is
+    // unmounted when the session arrives and the detail is refetched, so
+    // asserting on it races with that refetch.
     expect(await screen.findByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
     await waitFor(() => expect(auth.at(-1)).toBe('Bearer token'))
+    expect(await screen.findByText('Ana Ruiz')).toBeInTheDocument()
   })
 
   it('las respuestas fuera de orden no muestran el jugador equivocado', async () => {
