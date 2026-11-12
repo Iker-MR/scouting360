@@ -22,3 +22,18 @@ export function mockMe(me: Partial<MeResponse> = {}) {
   )
   return authorization
 }
+
+/** Holds GET /api/auth/me/ until the returned release() is called. */
+export function mockPendingMe(me: Partial<MeResponse> = {}) {
+  let release!: () => void
+  const released = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get('/api/auth/me/', async () => {
+      await released
+      return HttpResponse.json({ id: 1, username: 'ojeadora', jugador_id: null, ...me })
+    }),
+  )
+  return release
+}

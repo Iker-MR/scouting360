@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { mockMe } from '../test/authMocks'
+import { mockMe, mockPendingMe } from '../test/authMocks'
 import { server } from '../test/server'
 import { AuthProvider } from './AuthProvider'
 import { LoginPage } from './LoginPage'
@@ -131,25 +131,10 @@ describe('AuthProvider usuario actual', () => {
   })
 })
 
-/** Holds GET /api/auth/me/ until the returned release() is called. */
-function mockPendingMe() {
-  let release!: () => void
-  const released = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  server.use(
-    http.get('/api/auth/me/', async () => {
-      await released
-      return HttpResponse.json({ id: 1, username: 'ojeadora', jugador_id: 7 })
-    }),
-  )
-  return release
-}
-
 describe('AuthProvider estado del usuario actual', () => {
   it('el usuario está cargando hasta que /me responde', async () => {
     mockRefresh(true)
-    const release = mockPendingMe()
+    const release = mockPendingMe({ jugador_id: 7 })
     renderProbe()
 
     expect(await screen.findByText('Estado usuario: loading')).toBeInTheDocument()
