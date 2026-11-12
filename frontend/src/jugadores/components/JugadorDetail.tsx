@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import type { Atributos, Jugador } from '../api/jugadoresApi'
+import { PIERNAS, type Atributos, type Jugador } from '../api/jugadoresApi'
 import { calcularEdad } from '../utils/calcularEdad'
 import { initials } from './initials'
 
@@ -11,8 +11,6 @@ const ATRIBUTOS: Array<[keyof Atributos, string]> = [
   ['defensa', 'Defensa'],
   ['fisico', 'Físico'],
 ]
-
-const PIERNAS = { D: 'Derecha', I: 'Zurda' } as const
 
 interface JugadorDetailProps {
   jugador: Jugador

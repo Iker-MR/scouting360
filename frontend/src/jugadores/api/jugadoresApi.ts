@@ -14,6 +14,13 @@ export const POSICIONES: Record<Posicion, string> = {
   DL: 'Delantero centro',
 }
 
+export type PiernaDominante = 'D' | 'I'
+
+export const PIERNAS: Record<PiernaDominante, string> = {
+  D: 'Derecha',
+  I: 'Zurda',
+}
+
 export interface Atributos {
   ritmo: number
   tiro: number
@@ -30,7 +37,7 @@ export interface Jugador {
   fecha_nacimiento: string
   posicion: Posicion
   posicion_display: string
-  pierna_dominante: 'D' | 'I'
+  pierna_dominante: PiernaDominante
   zona: string
   club_actual: string
   disponible: boolean
