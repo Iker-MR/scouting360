@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as authApi from './api/authApi'
 import { createAuthFetch } from './api/authFetch'
-import { AuthContext, type AuthStatus } from './AuthContext'
+import { AuthContext, type AuthStatus, type UserStatus } from './AuthContext'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('checking')
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [user, setUser] = useState<authApi.CurrentUser | null>(null)
+  // Whether GET /api/auth/me/ has answered (or failed) for the current session.
+  const [meSettled, setMeSettled] = useState(false)
   // authFetch reads the token from this ref so it never sees a stale render value.
   const accessTokenRef = useRef<string | null>(null)
 
@@ -15,7 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessTokenRef.current = token
     setAccessToken(token)
     setStatus(token ? 'authenticated' : 'anonymous')
-    if (!token) setUser(null)
+    // Only a lost session resets the user: a silent token refresh keeps it.
+    if (!token) {
+      setUser(null)
+      setMeSettled(false)
+    }
   }, [])
 
   // createAuthFetch only stores these callbacks; the ref is read when a request
@@ -52,12 +58,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .getMe(authFetch)
       .catch(() => null)
       .then((me) => {
-        if (!cancelled) setUser(me)
+        if (cancelled) return
+        setUser(me)
+        setMeSettled(true)
       })
     return () => {
       cancelled = true
     }
   }, [hasSession, authFetch])
+
+  // Derived, not stored, so it can never disagree with `status`.
+  const userStatus: UserStatus = status === 'checking' || (hasSession && !meSettled) ? 'loading' : 'ready'
 
   const login = useCallback(
     async (username: string, password: string) => {
@@ -75,8 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setSession])
 
   const value = useMemo(
-    () => ({ status, accessToken, user, login, logout, authFetch }),
-    [status, accessToken, user, login, logout, authFetch],
+    () => ({ status, accessToken, user, userStatus, login, logout, authFetch }),
+    [status, accessToken, user, userStatus, login, logout, authFetch],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

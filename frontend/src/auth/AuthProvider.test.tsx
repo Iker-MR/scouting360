@@ -58,7 +58,7 @@ function mockRefresh(valid: boolean) {
 }
 
 function CurrentUserProbe() {
-  const { status, user, login, logout } = useAuth()
+  const { status, user, userStatus, login, logout } = useAuth()
   if (status === 'checking') return <p>Cargando...</p>
   return (
     <>
@@ -66,6 +66,7 @@ function CurrentUserProbe() {
         Usuario:{' '}
         {user ? `${user.username} (jugador ${user.jugador_id ?? 'ninguno'})` : 'ninguno'}
       </p>
+      <p>Estado usuario: {userStatus}</p>
       <button onClick={() => void login('ojeadora', 'clave-segura-123')}>Entrar</button>
       <button onClick={() => void logout()}>Salir</button>
     </>
@@ -127,5 +128,56 @@ describe('AuthProvider usuario actual', () => {
     await user.click(screen.getByRole('button', { name: 'Salir' }))
 
     expect(await screen.findByText('Usuario: ninguno')).toBeInTheDocument()
+  })
+})
+
+/** Holds GET /api/auth/me/ until the returned release() is called. */
+function mockPendingMe() {
+  let release!: () => void
+  const released = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get('/api/auth/me/', async () => {
+      await released
+      return HttpResponse.json({ id: 1, username: 'ojeadora', jugador_id: 7 })
+    }),
+  )
+  return release
+}
+
+describe('AuthProvider estado del usuario actual', () => {
+  it('el usuario está cargando hasta que /me responde', async () => {
+    mockRefresh(true)
+    const release = mockPendingMe()
+    renderProbe()
+
+    expect(await screen.findByText('Estado usuario: loading')).toBeInTheDocument()
+    expect(screen.getByText('Usuario: ninguno')).toBeInTheDocument()
+
+    release()
+
+    expect(await screen.findByText('Estado usuario: ready')).toBeInTheDocument()
+    expect(screen.getByText('Usuario: ojeadora (jugador 7)')).toBeInTheDocument()
+  })
+
+  it('el usuario está listo aunque /me falle', async () => {
+    mockRefresh(true)
+    server.use(
+      http.get('/api/auth/me/', () =>
+        HttpResponse.json({ detail: 'Server error' }, { status: 500 }),
+      ),
+    )
+    renderProbe()
+
+    expect(await screen.findByText('Estado usuario: ready')).toBeInTheDocument()
+    expect(screen.getByText('Usuario: ninguno')).toBeInTheDocument()
+  })
+
+  it('el usuario está listo para un visitante anónimo', async () => {
+    mockRefresh(false)
+    renderProbe()
+
+    expect(await screen.findByText('Estado usuario: ready')).toBeInTheDocument()
   })
 })
