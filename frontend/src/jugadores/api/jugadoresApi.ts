@@ -122,6 +122,20 @@ export class JugadorValidationError extends Error {
   }
 }
 
+export async function createJugador(fetcher: AuthFetch, datos: JugadorCambios): Promise<Jugador> {
+  const response = await fetcher('/api/jugadores/', {
+    method: 'POST',
+    // Without it DRF cannot parse the body and answers 415.
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos),
+  })
+  if (response.status === 400) {
+    throw new JugadorValidationError((await response.json()) as Record<string, string[]>)
+  }
+  if (!response.ok) throw new Error(`Failed to create jugador (${response.status})`)
+  return (await response.json()) as Jugador
+}
+
 export async function updateJugador(
   fetcher: AuthFetch,
   id: number,
