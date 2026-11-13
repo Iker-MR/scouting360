@@ -85,9 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [setSession])
 
+  // The create response is as authoritative as /me, so no refetch (and no
+  // 'loading' flicker). Without a loaded user there is nothing to link.
+  const linkJugador = useCallback((jugadorId: number) => {
+    setUser((current) => (current ? { ...current, jugador_id: jugadorId } : current))
+  }, [])
+
   const value = useMemo(
-    () => ({ status, accessToken, user, userStatus, login, logout, authFetch }),
-    [status, accessToken, user, userStatus, login, logout, authFetch],
+    () => ({ status, accessToken, user, userStatus, login, logout, linkJugador, authFetch }),
+    [status, accessToken, user, userStatus, login, logout, linkJugador, authFetch],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

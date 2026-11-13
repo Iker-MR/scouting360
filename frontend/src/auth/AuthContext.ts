@@ -19,6 +19,8 @@ export interface AuthContextValue {
   userStatus: UserStatus
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  /** Records a just-created player profile on the current user, without refetching /me. */
+  linkJugador: (jugadorId: number) => void
   authFetch: AuthFetch
 }
 

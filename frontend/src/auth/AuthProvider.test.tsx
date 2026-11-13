@@ -58,7 +58,7 @@ function mockRefresh(valid: boolean) {
 }
 
 function CurrentUserProbe() {
-  const { status, user, userStatus, login, logout } = useAuth()
+  const { status, user, userStatus, login, logout, linkJugador } = useAuth()
   if (status === 'checking') return <p>Cargando...</p>
   return (
     <>
@@ -69,6 +69,7 @@ function CurrentUserProbe() {
       <p>Estado usuario: {userStatus}</p>
       <button onClick={() => void login('ojeadora', 'clave-segura-123')}>Entrar</button>
       <button onClick={() => void logout()}>Salir</button>
+      <button onClick={() => linkJugador(42)}>Vincular jugador 42</button>
     </>
   )
 }
@@ -128,6 +129,37 @@ describe('AuthProvider usuario actual', () => {
     await user.click(screen.getByRole('button', { name: 'Salir' }))
 
     expect(await screen.findByText('Usuario: ninguno')).toBeInTheDocument()
+  })
+})
+
+describe('AuthProvider linkJugador', () => {
+  it('linkJugador actualiza el jugador_id del usuario actual sin volver a pedir /me', async () => {
+    mockRefresh(true)
+    const meRequests = mockMe({ username: 'ojeadora', jugador_id: null })
+    const user = userEvent.setup()
+    renderProbe()
+    await screen.findByText('Usuario: ojeadora (jugador ninguno)')
+
+    await user.click(screen.getByRole('button', { name: 'Vincular jugador 42' }))
+
+    expect(await screen.findByText('Usuario: ojeadora (jugador 42)')).toBeInTheDocument()
+    expect(meRequests).toHaveLength(1)
+  })
+
+  it('linkJugador no inventa un usuario si no hay usuario cargado', async () => {
+    mockRefresh(true)
+    server.use(
+      http.get('/api/auth/me/', () =>
+        HttpResponse.json({ detail: 'Server error' }, { status: 500 }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderProbe()
+    await screen.findByText('Estado usuario: ready')
+
+    await user.click(screen.getByRole('button', { name: 'Vincular jugador 42' }))
+
+    expect(screen.getByText('Usuario: ninguno')).toBeInTheDocument()
   })
 })
 
