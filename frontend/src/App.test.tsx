@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse, delay } from 'msw'
 import { MemoryRouter } from 'react-router'
-import { mockMe } from './test/authMocks'
+import { mockMe, mockPendingMe } from './test/authMocks'
 import { server } from './test/server'
 import { buildJugador, mockJugadores, pageResponse } from './test/jugadoresMocks'
 import App from './App'
@@ -236,5 +236,61 @@ describe('Rutas y cabecera', () => {
     // Let the slow refresh finish: refreshSession dedupes through module state,
     // so a pending one would be shared with (and answer) the next test.
     expect(await screen.findByRole('link', { name: 'Iniciar sesión' })).toBeInTheDocument()
+  })
+})
+
+describe('Cabecera: enlaces de perfil', () => {
+  it('muestra "Crear mi perfil" al usuario sin jugador y lleva al formulario', async () => {
+    mockRefresh('valid')
+    mockMe({ jugador_id: null })
+    const user = userEvent.setup()
+    renderAt()
+
+    const link = await screen.findByRole('link', { name: 'Crear mi perfil' })
+    expect(link).toHaveAttribute('href', '/jugadores/nuevo')
+    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
+
+    await user.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Crear mi perfil' }),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra "Mi perfil" y no "Crear mi perfil" al usuario con jugador', async () => {
+    mockRefresh('valid')
+    mockMe({ jugador_id: 7 })
+    renderAt()
+
+    // Waiting for a positive signal: /me has answered, so the absence below is final.
+    expect(await screen.findByRole('link', { name: 'Mi perfil' })).toHaveAttribute(
+      'href',
+      '/jugadores/7',
+    )
+    expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
+  })
+
+  it('no muestra enlaces de perfil mientras carga el usuario', async () => {
+    mockRefresh('valid')
+    const release = mockPendingMe({ jugador_id: 7 })
+    renderAt()
+
+    // The session is known, but /me has not answered yet.
+    await screen.findByRole('button', { name: 'Cerrar sesión' })
+    expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
+
+    release()
+
+    expect(await screen.findByRole('link', { name: 'Mi perfil' })).toBeInTheDocument()
+  })
+
+  it('no muestra enlaces de perfil a un visitante anónimo', async () => {
+    mockRefresh('invalid')
+    renderAt()
+
+    await screen.findByRole('link', { name: 'Iniciar sesión' })
+    expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
   })
 })
