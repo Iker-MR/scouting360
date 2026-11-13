@@ -16,6 +16,7 @@ interface JugadorFormProps {
   submitting: boolean
   /** Server validation errors keyed by field name (DRF 400 body). */
   errors?: Record<string, string[]>
+  submitLabel?: string
 }
 
 type Field = keyof JugadorFormValues
@@ -25,6 +26,7 @@ export function JugadorForm({
   onSubmit,
   submitting,
   errors = {},
+  submitLabel = 'Guardar cambios',
 }: JugadorFormProps) {
   const [values, setValues] = useState(initialValues)
   // Unique per instance, so two forms on one page never share input ids.
@@ -93,6 +95,10 @@ export function JugadorForm({
           value={values.posicion}
           onChange={(event) => set('posicion', event.target.value as Posicion)}
         >
+          {/* Without a matching option the browser would silently show the first one. */}
+          <option value="" disabled>
+            Selecciona una posición
+          </option>
           {Object.entries(POSICIONES).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -109,6 +115,9 @@ export function JugadorForm({
           value={values.pierna_dominante}
           onChange={(event) => set('pierna_dominante', event.target.value as PiernaDominante)}
         >
+          <option value="" disabled>
+            Selecciona una pierna
+          </option>
           {Object.entries(PIERNAS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -163,7 +172,7 @@ export function JugadorForm({
       </div>
 
       <button type="submit" disabled={submitting}>
-        {submitting ? 'Guardando...' : 'Guardar cambios'}
+        {submitting ? 'Guardando...' : submitLabel}
       </button>
     </form>
   )

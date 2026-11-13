@@ -96,19 +96,15 @@ export async function getJugador(fetcher: AuthFetch, id: number): Promise<Jugado
   return (await response.json()) as Jugador
 }
 
-/** Personal fields a player may edit; atributos and foto are managed elsewhere. */
+/**
+ * Personal fields a player may send; atributos and foto are managed elsewhere.
+ * Choices may be '' (nothing picked yet): the server rejects it with a 400.
+ */
 export type JugadorCambios = Partial<
-  Pick<
-    Jugador,
-    | 'nombre'
-    | 'fecha_nacimiento'
-    | 'posicion'
-    | 'pierna_dominante'
-    | 'zona'
-    | 'club_actual'
-    | 'disponible'
-    | 'bio'
-  >
+  Pick<Jugador, 'nombre' | 'fecha_nacimiento' | 'zona' | 'club_actual' | 'disponible' | 'bio'> & {
+    posicion: Posicion | ''
+    pierna_dominante: PiernaDominante | ''
+  }
 >
 
 /** DRF validation failure (400), keyed by field name. */

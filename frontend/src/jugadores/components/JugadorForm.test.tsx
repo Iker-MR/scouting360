@@ -68,4 +68,27 @@ describe('JugadorForm', () => {
 
     expect(screen.getByRole('button', { name: 'Guardando...' })).toBeDisabled()
   })
+
+  it('muestra el texto del botón recibido por props', () => {
+    renderForm({ submitLabel: 'Crear perfil' })
+
+    expect(screen.getByRole('button', { name: 'Crear perfil' })).toBeEnabled()
+  })
+
+  it('permite empezar sin posición ni pierna elegidas', async () => {
+    const { onSubmit } = renderForm({
+      initialValues: { ...valores, posicion: '', pierna_dominante: '' },
+    })
+    const user = userEvent.setup()
+
+    expect(screen.getByLabelText('Posición')).toHaveDisplayValue('Selecciona una posición')
+    expect(screen.getByLabelText('Pierna dominante')).toHaveDisplayValue('Selecciona una pierna')
+    // Once something is picked, the placeholder cannot be chosen again.
+    expect(screen.getByRole('option', { name: 'Selecciona una posición' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    // Sent as is: the server rejects '' with a 400 that the form then shows.
+    expect(onSubmit).toHaveBeenCalledWith({ ...valores, posicion: '', pierna_dominante: '' })
+  })
 })
