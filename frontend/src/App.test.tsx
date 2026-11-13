@@ -233,5 +233,8 @@ describe('Rutas y cabecera', () => {
 
     expect(await screen.findByText('Ana Ruiz')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument()
+    // Let the slow refresh finish: refreshSession dedupes through module state,
+    // so a pending one would be shared with (and answer) the next test.
+    expect(await screen.findByRole('link', { name: 'Iniciar sesión' })).toBeInTheDocument()
   })
 })
