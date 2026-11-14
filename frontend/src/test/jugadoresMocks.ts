@@ -19,8 +19,6 @@ export function buildJugador(overrides: Partial<Jugador> = {}): Jugador {
     disponible: true,
     foto: null,
     bio: '',
-    atributos: { ritmo: 70, tiro: 65, pase: 72, regate: 68, defensa: 50, fisico: 60 },
-    overall: 70,
     creado: '2026-01-01T10:00:00Z',
     ...overrides,
   }

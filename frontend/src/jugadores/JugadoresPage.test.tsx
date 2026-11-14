@@ -67,17 +67,22 @@ describe('Listado de jugadores', () => {
     expect(await screen.findByText('Ana Ruiz')).toBeInTheDocument()
   })
 
-  it('muestra "—" cuando no hay overall y "Sin club" cuando no hay club', async () => {
-    mockJugadores(() =>
-      pageResponse([
-        buildJugador({ nombre: 'Sin Datos', overall: null, atributos: null, club_actual: '' }),
-      ]),
-    )
+  it('muestra "Sin club" cuando no hay club', async () => {
+    mockJugadores(() => pageResponse([buildJugador({ nombre: 'Sin Datos', club_actual: '' })]))
     renderAt()
 
     const card = (await screen.findByText('Sin Datos')).closest('article')!
-    expect(within(card).getByText('—')).toBeInTheDocument()
     expect(within(card).getByText('Sin club')).toBeInTheDocument()
+  })
+
+  it('la tarjeta no muestra la valoración global', async () => {
+    // Even if a stale API still sent the old rating, the card must not show it.
+    const conValoracion = { ...buildJugador({ nombre: 'Ana Ruiz' }), overall: 87 }
+    mockJugadores(() => pageResponse([conValoracion]))
+    renderAt()
+
+    const card = (await screen.findByText('Ana Ruiz')).closest('article')!
+    expect(within(card).queryByText('87')).not.toBeInTheDocument()
   })
 
   it('muestra la insignia de disponibilidad, la foto y las iniciales como alternativa', async () => {

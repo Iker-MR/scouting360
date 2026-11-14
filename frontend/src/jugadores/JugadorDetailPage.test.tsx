@@ -47,7 +47,6 @@ describe('Detalle de jugador', () => {
           disponible: true,
           foto: 'http://localhost/ana.jpg',
           bio: 'Delantera rápida.',
-          overall: 81,
         }),
       ),
     )
@@ -65,10 +64,9 @@ describe('Detalle de jugador', () => {
     expect(screen.getByText('Betis B')).toBeInTheDocument()
     expect(screen.getByText('Disponible')).toBeInTheDocument()
     expect(screen.getByText('Delantera rápida.')).toBeInTheDocument()
-    expect(screen.getByText('81')).toBeInTheDocument()
   })
 
-  it('muestra las iniciales, "Sin club", "No disponible", "Derecha" y "—" cuando faltan datos', async () => {
+  it('muestra las iniciales, "Sin club", "No disponible" y "Derecha" cuando faltan datos', async () => {
     mockJugador(3, () =>
       HttpResponse.json(
         buildJugador({
@@ -78,8 +76,6 @@ describe('Detalle de jugador', () => {
           club_actual: '',
           disponible: false,
           pierna_dominante: 'D',
-          overall: null,
-          atributos: null,
         }),
       ),
     )
@@ -91,7 +87,6 @@ describe('Detalle de jugador', () => {
     expect(screen.getByText('Sin club')).toBeInTheDocument()
     expect(screen.getByText('No disponible')).toBeInTheDocument()
     expect(screen.getByText('Derecha')).toBeInTheDocument()
-    expect(screen.getByText('—')).toBeInTheDocument()
   })
 
   it('calcula la edad a partir de la fecha de nacimiento', async () => {
@@ -109,32 +104,21 @@ describe('Detalle de jugador', () => {
     }
   })
 
-  it('muestra los atributos con su valor accesible', async () => {
-    mockJugador(5, () =>
-      HttpResponse.json(
-        buildJugador({
-          id: 5,
-          atributos: { ritmo: 91, tiro: 82, pase: 73, regate: 64, defensa: 55, fisico: 46 },
-        }),
-      ),
-    )
-    renderAt('/jugadores/5')
-
-    const expected = { Ritmo: 91, Tiro: 82, Pase: 73, Regate: 64, Defensa: 55, Físico: 46 }
-    for (const [label, value] of Object.entries(expected)) {
-      const meter = await screen.findByRole('meter', { name: label })
-      expect(meter).toHaveAttribute('aria-valuenow', String(value))
-      expect(meter).toHaveAttribute('aria-valuemin', '0')
-      expect(meter).toHaveAttribute('aria-valuemax', '99')
+  it('muestra solo datos descriptivos, sin atributos ni valoración global', async () => {
+    // Even if a stale API still sent the old ratings, the page must not show them.
+    const conValoraciones = {
+      ...buildJugador({ id: 9 }),
+      overall: 87,
+      atributos: { ritmo: 91, tiro: 82, pase: 73, regate: 64, defensa: 55, fisico: 46 },
     }
-  })
+    mockJugador(9, () => HttpResponse.json(conValoraciones))
+    renderAt('/jugadores/9')
 
-  it('sin atributos muestra el mensaje', async () => {
-    mockJugador(6, () => HttpResponse.json(buildJugador({ id: 6, atributos: null })))
-    renderAt('/jugadores/6')
-
-    expect(await screen.findByText('Este jugador todavía no tiene atributos.')).toBeInTheDocument()
+    await screen.findByRole('heading', { level: 1 })
+    expect(screen.queryByRole('heading', { name: 'Atributos' })).not.toBeInTheDocument()
     expect(screen.queryByRole('meter')).not.toBeInTheDocument()
+    expect(screen.queryByText('Overall')).not.toBeInTheDocument()
+    expect(screen.queryByText('87')).not.toBeInTheDocument()
   })
 
   it('sin bio no muestra la sección', async () => {

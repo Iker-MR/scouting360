@@ -195,12 +195,6 @@ main {
   margin: 0;
 }
 
-.jugador-card__overall {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
 .badge {
   align-self: flex-start;
   padding: 2px 8px;
@@ -290,29 +284,6 @@ main {
   margin: 0;
   color: var(--text-h);
   font-weight: 500;
-}
-
-.jugador-detail__overall {
-  font-size: 24px;
-}
-
-.atributos {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.atributos li {
-  display: grid;
-  grid-template-columns: 80px 1fr 32px;
-  align-items: center;
-  gap: 12px;
-}
-
-.atributos meter {
-  width: 100%;
 }
 
 .jugador-detail-page__back {

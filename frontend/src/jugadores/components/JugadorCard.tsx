@@ -25,7 +25,6 @@ export function JugadorCard({ jugador, listSearch = '' }: JugadorCardProps) {
           </Link>
         </h2>
         <p>{jugador.posicion_display}</p>
-        <p className="jugador-card__overall">{jugador.overall ?? '—'}</p>
         <p>{jugador.zona}</p>
         <p>{jugador.club_actual || 'Sin club'}</p>
         <span

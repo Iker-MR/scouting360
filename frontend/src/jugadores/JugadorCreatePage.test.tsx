@@ -37,7 +37,7 @@ function mockCreatableJugador() {
     http.post('/api/jugadores/', async ({ request }) => {
       const body = (await request.json()) as Partial<Jugador>
       posts.push(body)
-      jugador = buildJugador({ ...body, id: 42, atributos: null, overall: null })
+      jugador = buildJugador({ ...body, id: 42 })
       return HttpResponse.json(jugador, { status: 201 })
     }),
   )

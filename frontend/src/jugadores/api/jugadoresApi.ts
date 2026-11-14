@@ -21,15 +21,6 @@ export const PIERNAS: Record<PiernaDominante, string> = {
   I: 'Zurda',
 }
 
-export interface Atributos {
-  ritmo: number
-  tiro: number
-  pase: number
-  regate: number
-  defensa: number
-  fisico: number
-}
-
 export interface Jugador {
   id: number
   usuario: number
@@ -43,8 +34,6 @@ export interface Jugador {
   disponible: boolean
   foto: string | null
   bio: string
-  atributos: Atributos | null
-  overall: number | null
   creado: string
 }
 
@@ -97,7 +86,7 @@ export async function getJugador(fetcher: AuthFetch, id: number): Promise<Jugado
 }
 
 /**
- * Personal fields a player may send; atributos and foto are managed elsewhere.
+ * Personal fields a player may send; foto is managed elsewhere.
  * Choices may be '' (nothing picked yet): the server rejects it with a 400.
  */
 export type JugadorCambios = Partial<

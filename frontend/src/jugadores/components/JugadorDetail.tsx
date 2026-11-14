@@ -1,16 +1,7 @@
 import { Link } from 'react-router'
-import { PIERNAS, type Atributos, type Jugador } from '../api/jugadoresApi'
+import { PIERNAS, type Jugador } from '../api/jugadoresApi'
 import { calcularEdad } from '../utils/calcularEdad'
 import { initials } from './initials'
-
-const ATRIBUTOS: Array<[keyof Atributos, string]> = [
-  ['ritmo', 'Ritmo'],
-  ['tiro', 'Tiro'],
-  ['pase', 'Pase'],
-  ['regate', 'Regate'],
-  ['defensa', 'Defensa'],
-  ['fisico', 'Físico'],
-]
 
 interface JugadorDetailProps {
   jugador: Jugador
@@ -20,7 +11,6 @@ interface JugadorDetailProps {
 
 export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
   const edad = calcularEdad(jugador.fecha_nacimiento)
-  const { atributos } = jugador
 
   return (
     <article className="jugador-detail">
@@ -51,10 +41,6 @@ export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
 
       <dl className="jugador-detail__datos">
         <div>
-          <dt>Overall</dt>
-          <dd className="jugador-detail__overall">{jugador.overall ?? '—'}</dd>
-        </div>
-        <div>
           <dt>Edad</dt>
           <dd>{edad === 1 ? '1 año' : `${edad} años`}</dd>
         </div>
@@ -78,31 +64,6 @@ export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
           <p>{jugador.bio}</p>
         </section>
       )}
-
-      <section>
-        <h2>Atributos</h2>
-        {atributos ? (
-          <ul className="atributos">
-            {ATRIBUTOS.map(([name, label]) => (
-              <li key={name}>
-                <label htmlFor={`atributo-${name}`}>{label}</label>
-                <meter
-                  id={`atributo-${name}`}
-                  min={0}
-                  max={99}
-                  value={atributos[name]}
-                  aria-valuemin={0}
-                  aria-valuemax={99}
-                  aria-valuenow={atributos[name]}
-                />
-                <span aria-hidden="true">{atributos[name]}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Este jugador todavía no tiene atributos.</p>
-        )}
-      </section>
     </article>
   )
 }
