@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
 # Create your models here.
 
@@ -38,35 +37,3 @@ class Jugador (models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.get_posicion_display()})"
-
-    @property
-    def overall(self):
-        if not hasattr(self, "atributos"):
-            return None
-        a = self.atributos
-        valores = [a.ritmo, a.tiro, a.pase, a.regate, a.defensa, a.fisico]
-        return round(sum(valores) / len(valores))
-
-
-def atributo_field():
-    return models.PositiveSmallIntegerField(
-        default=50,
-        validators=[MinValueValidator(0), MaxValueValidator(99)],
-    )
-
-
-class Atributos(models.Model):
-    jugador = models.OneToOneField(Jugador, on_delete=models.CASCADE, related_name="atributos")
-    ritmo = atributo_field()
-    tiro = atributo_field()
-    pase = atributo_field()
-    regate = atributo_field()
-    defensa = atributo_field()
-    fisico = atributo_field()
-    actualizado = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "atributos"
-
-    def __str__(self):
-        return f"Atributos de {self.jugador.nombre}"

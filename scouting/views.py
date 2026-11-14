@@ -8,7 +8,7 @@ from .serializers import JugadorSerializer
 
 
 class JugadorViewSet(viewsets.ModelViewSet):
-    queryset = Jugador.objects.select_related("atributos")
+    queryset = Jugador.objects.all()
     serializer_class = JugadorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filterset_fields = ["posicion", "pierna_dominante", "disponible", "zona"]

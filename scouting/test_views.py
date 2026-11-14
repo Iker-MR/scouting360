@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Atributos, Jugador
+from .models import Jugador
 from .tests import crear_jugador
 
 LISTA_URL = reverse("jugador-list")
@@ -36,12 +36,11 @@ class JugadorLecturaTests(APITestCase):
 
     def test_anonimo_puede_ver_el_detalle(self):
         jugador = crear_jugador()
-        Atributos.objects.create(jugador=jugador)
 
         response = self.client.get(detalle_url(jugador))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["overall"], 50)
+        self.assertEqual(response.data["id"], jugador.pk)
 
     def test_filtra_por_posicion(self):
         crear_jugador("delantero")
