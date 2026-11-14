@@ -1,13 +1,13 @@
 # Scouting360
 
-API REST para crear y consultar perfiles de futbolistas. Cada usuario gestiona su propio perfil, con posición, pierna dominante, zona, disponibilidad y atributos deportivos. Cualquier visitante puede consultar los perfiles, buscarlos y filtrarlos.
+API REST para crear y consultar perfiles de futbolistas. Cada usuario gestiona su propio perfil, con posición, pierna dominante, zona, club, disponibilidad, foto y biografía. Cualquier visitante puede consultar los perfiles, buscarlos y filtrarlos.
 
 ## Funcionalidades
 
 - Registro e inicio de sesión con JWT.
 - Token de refresco en cookie `httpOnly`, con rotación y lista negra al cerrar sesión.
 - Un perfil por usuario, y solo su propietario puede modificarlo.
-- Atributos deportivos de 0 a 99 y una valoración global calculada a partir de ellos.
+- Perfiles con datos descriptivos. Las estadísticas deportivas llegarán más adelante, basadas en análisis de vídeo.
 - Búsqueda por nombre, zona y club, y filtros por posición, pierna, disponibilidad y zona.
 
 ## Decisiones técnicas
