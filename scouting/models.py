@@ -53,11 +53,17 @@ class Jugador (models.Model):
 
 
 class Ojeador(models.Model):
+    class Plan(models.TextChoices):
+        GRATIS = "gratis", "Gratis"
+        PREMIUM = "premium", "Premium"
+
     usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ojeador")
     nombre = models.CharField(max_length=100)
     organizacion = models.CharField(max_length=100, blank=True)
     # Only staff can verify a scout (admin); the API never writes this field.
     verificado = models.BooleanField(default=False)
+    # Subscription, independent from verificado. Set by staff (later by payment), never by the API.
+    plan = models.CharField(max_length=10, choices=Plan.choices, default=Plan.GRATIS)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:

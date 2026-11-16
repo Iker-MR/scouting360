@@ -3,12 +3,30 @@ from rest_framework import serializers
 from .models import Jugador, Ojeador
 
 
+def es_dueno(context, usuario_id):
+    # No request (scripts, other serializers) fails closed to the public view.
+    request = context.get("request")
+    return (
+        request is not None
+        and request.user.is_authenticated
+        and request.user.pk == usuario_id
+    )
+
+
 class OjeadorSerializer(serializers.ModelSerializer):
+    """The plan is the scout's commercial data: only its owner sees it."""
+
     class Meta:
         model = Ojeador
-        fields = ["id", "nombre", "organizacion", "verificado"]
-        # Verification is a staff decision made in the admin, never by the scout.
-        read_only_fields = ["verificado"]
+        fields = ["id", "nombre", "organizacion", "verificado", "plan"]
+        # Verification and plan are staff decisions made in the admin, never by the scout.
+        read_only_fields = ["verificado", "plan"]
+
+    def to_representation(self, ojeador):
+        data = super().to_representation(ojeador)
+        if not es_dueno(self.context, ojeador.usuario_id):
+            del data["plan"]
+        return data
 
 
 class JugadorSerializer(serializers.ModelSerializer):
@@ -45,16 +63,7 @@ class JugadorSerializer(serializers.ModelSerializer):
 
     def to_representation(self, jugador):
         data = super().to_representation(jugador)
-        if not self._es_dueno(jugador):
+        if not es_dueno(self.context, jugador.usuario_id):
             data["nombre"] = jugador.nombre_publico()
             del data["fecha_nacimiento"]
         return data
-
-    def _es_dueno(self, jugador):
-        # No request (scripts, other serializers) fails closed to the public profile.
-        request = self.context.get("request")
-        return (
-            request is not None
-            and request.user.is_authenticated
-            and request.user.pk == jugador.usuario_id
-        )
