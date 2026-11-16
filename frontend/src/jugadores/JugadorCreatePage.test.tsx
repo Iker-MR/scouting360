@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router'
 import App from '../App'
 import { mockMe, mockPendingMe } from '../test/authMocks'
-import { buildJugador, mockJugador } from '../test/jugadoresMocks'
+import { buildJugador, mockJugador, mockJugadores, pageResponse } from '../test/jugadoresMocks'
 import { server } from '../test/server'
 import type { Jugador } from './api/jugadoresApi'
 
@@ -90,6 +90,17 @@ describe('JugadorCreatePage acceso', () => {
       await screen.findByRole('heading', { level: 1, name: 'Ana Ruiz' }),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument()
+  })
+
+  it('redirige al listado a un usuario que ya es ojeador', async () => {
+    mockMe({ ojeador_id: 9 })
+    mockJugadores(() => pageResponse([buildJugador({ nombre: 'Ana Ruiz' })]))
+    renderAt('/jugadores/nuevo')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Jugadores' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { level: 1, name: 'Crear mi perfil' }),
+    ).not.toBeInTheDocument()
   })
 })
 

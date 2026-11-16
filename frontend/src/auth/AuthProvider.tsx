@@ -91,9 +91,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser((current) => (current ? { ...current, jugador_id: jugadorId } : current))
   }, [])
 
+  const linkOjeador = useCallback((ojeadorId: number) => {
+    setUser((current) => (current ? { ...current, ojeador_id: ojeadorId } : current))
+  }, [])
+
   const value = useMemo(
-    () => ({ status, accessToken, user, userStatus, login, logout, linkJugador, authFetch }),
-    [status, accessToken, user, userStatus, login, logout, linkJugador, authFetch],
+    () => ({
+      status,
+      accessToken,
+      user,
+      userStatus,
+      login,
+      logout,
+      linkJugador,
+      linkOjeador,
+      authFetch,
+    }),
+    [status, accessToken, user, userStatus, login, logout, linkJugador, linkOjeador, authFetch],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

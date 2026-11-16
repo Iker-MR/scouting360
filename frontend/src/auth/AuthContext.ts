@@ -21,6 +21,8 @@ export interface AuthContextValue {
   logout: () => Promise<void>
   /** Records a just-created player profile on the current user, without refetching /me. */
   linkJugador: (jugadorId: number) => void
+  /** Records a just-created scout profile on the current user, without refetching /me. */
+  linkOjeador: (ojeadorId: number) => void
   authFetch: AuthFetch
 }
 

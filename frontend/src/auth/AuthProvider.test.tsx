@@ -58,7 +58,7 @@ function mockRefresh(valid: boolean) {
 }
 
 function CurrentUserProbe() {
-  const { status, user, userStatus, login, logout, linkJugador } = useAuth()
+  const { status, user, userStatus, login, logout, linkJugador, linkOjeador } = useAuth()
   if (status === 'checking') return <p>Cargando...</p>
   return (
     <>
@@ -66,10 +66,12 @@ function CurrentUserProbe() {
         Usuario:{' '}
         {user ? `${user.username} (jugador ${user.jugador_id ?? 'ninguno'})` : 'ninguno'}
       </p>
+      <p>Ojeador: {user?.ojeador_id ?? 'ninguno'}</p>
       <p>Estado usuario: {userStatus}</p>
       <button onClick={() => void login('ojeadora', 'clave-segura-123')}>Entrar</button>
       <button onClick={() => void logout()}>Salir</button>
       <button onClick={() => linkJugador(42)}>Vincular jugador 42</button>
+      <button onClick={() => linkOjeador(9)}>Vincular ojeador 9</button>
     </>
   )
 }
@@ -160,6 +162,29 @@ describe('AuthProvider linkJugador', () => {
     await user.click(screen.getByRole('button', { name: 'Vincular jugador 42' }))
 
     expect(screen.getByText('Usuario: ninguno')).toBeInTheDocument()
+  })
+})
+
+describe('AuthProvider ojeador', () => {
+  it('carga el ojeador_id del usuario actual', async () => {
+    mockRefresh(true)
+    mockMe({ username: 'ojeadora', ojeador_id: 5 })
+    renderProbe()
+
+    expect(await screen.findByText('Ojeador: 5')).toBeInTheDocument()
+  })
+
+  it('linkOjeador actualiza el ojeador_id del usuario actual sin volver a pedir /me', async () => {
+    mockRefresh(true)
+    const meRequests = mockMe({ username: 'ojeadora', ojeador_id: null })
+    const user = userEvent.setup()
+    renderProbe()
+    await screen.findByText('Usuario: ojeadora (jugador ninguno)')
+
+    await user.click(screen.getByRole('button', { name: 'Vincular ojeador 9' }))
+
+    expect(await screen.findByText('Ojeador: 9')).toBeInTheDocument()
+    expect(meRequests).toHaveLength(1)
   })
 })
 

@@ -270,6 +270,44 @@ describe('Cabecera: enlaces de perfil', () => {
     expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
   })
 
+  it('ofrece "Soy ojeador" al usuario sin rol y lleva al formulario de ojeador', async () => {
+    mockRefresh('valid')
+    mockMe({ jugador_id: null, ojeador_id: null })
+    const user = userEvent.setup()
+    renderAt()
+
+    const link = await screen.findByRole('link', { name: 'Soy ojeador' })
+    expect(link).toHaveAttribute('href', '/ojeadores/nuevo')
+    expect(screen.getByRole('link', { name: 'Crear mi perfil' })).toBeInTheDocument()
+
+    await user.click(link)
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Crear perfil de ojeador' }),
+    ).toBeInTheDocument()
+  })
+
+  it('no ofrece "Soy ojeador" a un jugador', async () => {
+    mockRefresh('valid')
+    mockMe({ jugador_id: 7 })
+    renderAt()
+
+    await screen.findByRole('link', { name: 'Mi perfil' })
+    expect(screen.queryByRole('link', { name: 'Soy ojeador' })).not.toBeInTheDocument()
+  })
+
+  it('muestra el rol al ojeador y no le ofrece crear ningún perfil', async () => {
+    mockRefresh('valid')
+    mockMe({ ojeador_id: 9 })
+    renderAt()
+
+    // Positive signal: /me has answered, so the absences below are final.
+    expect(await screen.findByText('Ojeador')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Soy ojeador' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
+  })
+
   it('no muestra enlaces de perfil mientras carga el usuario', async () => {
     mockRefresh('valid')
     const release = mockPendingMe({ jugador_id: 7 })

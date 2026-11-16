@@ -7,6 +7,7 @@ import { JugadorDetailPage } from './jugadores/JugadorDetailPage'
 import { JugadorEditPage } from './jugadores/JugadorEditPage'
 import { JugadoresPage } from './jugadores/JugadoresPage'
 import { AppHeader } from './layout/AppHeader'
+import { OjeadorCreatePage } from './ojeadores/OjeadorCreatePage'
 
 function LoginRoute() {
   const { status } = useAuth()
@@ -27,6 +28,7 @@ function App() {
           <Route path="/jugadores/nuevo" element={<JugadorCreatePage />} />
           <Route path="/jugadores/:id" element={<JugadorDetailPage />} />
           <Route path="/jugadores/:id/editar" element={<JugadorEditPage />} />
+          <Route path="/ojeadores/nuevo" element={<OjeadorCreatePage />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="*" element={<Navigate to="/jugadores" replace />} />
         </Routes>

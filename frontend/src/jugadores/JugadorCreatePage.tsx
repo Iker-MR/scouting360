@@ -18,8 +18,8 @@ const EMPTY_VALUES: JugadorFormValues = {
 }
 
 /**
- * Guard for /jugadores/nuevo: only signed-in users without a player profile
- * may create one. The backend still rejects a second profile (400).
+ * Guard for /jugadores/nuevo: only signed-in users without any role may
+ * create a player profile. The backend still enforces one role per user (400).
  */
 export function JugadorCreatePage() {
   const { status, user, userStatus } = useAuth()
@@ -28,6 +28,8 @@ export function JugadorCreatePage() {
   if (status === 'checking' || userStatus === 'loading') return <p>Cargando...</p>
   if (status === 'anonymous') return <Navigate to="/login" replace />
   if (user?.jugador_id != null) return <Navigate to={`/jugadores/${user.jugador_id}`} replace />
+  // Roles are exclusive: a scout cannot also be a player.
+  if (user?.ojeador_id != null) return <Navigate to="/jugadores" replace />
 
   return (
     <section className="jugador-create-page">

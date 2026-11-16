@@ -5,7 +5,10 @@ interface MeResponse {
   id: number
   username: string
   jugador_id: number | null
+  ojeador_id: number | null
 }
+
+const DEFAULT_ME: MeResponse = { id: 1, username: 'ojeadora', jugador_id: null, ojeador_id: null }
 
 /**
  * Mocks GET /api/auth/me/ and returns the Authorization header of every
@@ -17,7 +20,7 @@ export function mockMe(me: Partial<MeResponse> = {}) {
   server.use(
     http.get('/api/auth/me/', ({ request }) => {
       authorization.push(request.headers.get('Authorization'))
-      return HttpResponse.json({ id: 1, username: 'ojeadora', jugador_id: null, ...me })
+      return HttpResponse.json({ ...DEFAULT_ME, ...me })
     }),
   )
   return authorization
@@ -32,7 +35,7 @@ export function mockPendingMe(me: Partial<MeResponse> = {}) {
   server.use(
     http.get('/api/auth/me/', async () => {
       await released
-      return HttpResponse.json({ id: 1, username: 'ojeadora', jugador_id: null, ...me })
+      return HttpResponse.json({ ...DEFAULT_ME, ...me })
     }),
   )
   return release

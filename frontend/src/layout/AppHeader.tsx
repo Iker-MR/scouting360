@@ -1,5 +1,18 @@
 import { Link } from 'react-router'
+import type { CurrentUser } from '../auth/api/authApi'
 import { useAuth } from '../auth/useAuth'
+
+/** Roles are exclusive, so a user sees the links of their role or the way to pick one. */
+function ProfileLinks({ user }: { user: CurrentUser }) {
+  if (user.jugador_id !== null) return <Link to={`/jugadores/${user.jugador_id}`}>Mi perfil</Link>
+  if (user.ojeador_id !== null) return <span className="app-header__role">Ojeador</span>
+  return (
+    <>
+      <Link to="/jugadores/nuevo">Crear mi perfil</Link>
+      <Link to="/ojeadores/nuevo">Soy ojeador</Link>
+    </>
+  )
+}
 
 export function AppHeader() {
   const { status, user, userStatus, logout } = useAuth()
@@ -12,12 +25,7 @@ export function AppHeader() {
       <Link to="/jugadores" className="app-header__brand">
         Scouting360
       </Link>
-      {knownUser &&
-        (knownUser.jugador_id === null ? (
-          <Link to="/jugadores/nuevo">Crear mi perfil</Link>
-        ) : (
-          <Link to={`/jugadores/${knownUser.jugador_id}`}>Mi perfil</Link>
-        ))}
+      {knownUser && <ProfileLinks user={knownUser} />}
       {status === 'anonymous' && <Link to="/login">Iniciar sesión</Link>}
       {status === 'authenticated' && (
         <button type="button" onClick={() => void logout()}>

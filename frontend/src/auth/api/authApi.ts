@@ -4,6 +4,8 @@ export interface CurrentUser {
   id: number
   username: string
   jugador_id: number | null
+  /** Roles are exclusive: at most one of jugador_id / ojeador_id is set. */
+  ojeador_id: number | null
 }
 
 export class InvalidCredentialsError extends Error {
