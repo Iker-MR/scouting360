@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router'
 import { AuthProvider } from './auth/AuthProvider'
+import { ConversacionPage } from './conversaciones/ConversacionPage'
 import { LoginPage } from './auth/LoginPage'
 import { useAuth } from './auth/useAuth'
 import { JugadorCreatePage } from './jugadores/JugadorCreatePage'
@@ -31,6 +32,7 @@ function App() {
           <Route path="/jugadores/:id/editar" element={<JugadorEditPage />} />
           <Route path="/ojeadores/nuevo" element={<OjeadorCreatePage />} />
           <Route path="/ojeadores/:id" element={<OjeadorDetailPage />} />
+          <Route path="/conversaciones/:id" element={<ConversacionPage />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="*" element={<Navigate to="/jugadores" replace />} />
         </Routes>
