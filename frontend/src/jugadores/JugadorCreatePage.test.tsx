@@ -162,6 +162,23 @@ describe('JugadorCreatePage creación', () => {
         '"" no es una elección válida.',
       ),
     )
+    // A field error is shown next to its field, not repeated in an alert.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Crear perfil' })).toBeEnabled()
+  })
+
+  it('muestra el error del usuario si ya tiene otro rol', async () => {
+    server.use(
+      http.post('/api/jugadores/', () =>
+        HttpResponse.json({ usuario: ['Este usuario ya tiene otro rol.'] }, { status: 400 }),
+      ),
+    )
+    renderAt('/jugadores/nuevo')
+
+    const user = await fillForm()
+    await user.click(screen.getByRole('button', { name: 'Crear perfil' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Este usuario ya tiene otro rol.')
     expect(screen.getByRole('button', { name: 'Crear perfil' })).toBeEnabled()
   })
 

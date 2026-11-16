@@ -64,9 +64,13 @@ function JugadorCreator() {
     }
   }
 
+  // Not tied to any form field (e.g. the user already holds another role).
+  const userError = fieldErrors.usuario?.join(' ')
+
   return (
     <>
       {saveFailed && <p role="alert">No se pudo crear el perfil.</p>}
+      {userError && <p role="alert">{userError}</p>}
       <JugadorForm
         initialValues={EMPTY_VALUES}
         onSubmit={(values) => void handleSubmit(values)}
