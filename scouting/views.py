@@ -59,7 +59,7 @@ class ConversacionViewSet(
         usuario = self.request.user
         return Conversacion.objects.filter(
             Q(ojeador__usuario=usuario) | Q(jugador__usuario=usuario)
-        )
+        ).select_related("ojeador", "jugador")
 
     def get_serializer_class(self):
         if self.action == "create":

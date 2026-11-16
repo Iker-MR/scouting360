@@ -81,9 +81,14 @@ class IniciarConversacionSerializer(serializers.ModelSerializer):
 
 
 class ConversacionSerializer(serializers.ModelSerializer):
+    """Inbox entry: who is on each side. The player's name is the public one."""
+
+    jugador_nombre = serializers.CharField(source="jugador.nombre_publico", read_only=True)
+    ojeador_nombre = serializers.CharField(source="ojeador.nombre", read_only=True)
+
     class Meta:
         model = Conversacion
-        fields = ["id", "ojeador", "jugador", "creada"]
+        fields = ["id", "ojeador", "jugador", "ojeador_nombre", "jugador_nombre", "creada"]
         read_only_fields = fields
 
 

@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Conversacion, Mensaje, Ojeador
+from .models import Conversacion, Jugador, Mensaje, Ojeador
 from .tests import crear_jugador, crear_ojeador
 
 # Literal path on purpose: the frontend depends on this exact URL.
@@ -213,6 +213,18 @@ class BandejaTests(ConversacionExistenteTestCase):
 
     def test_usuario_no_involucrado_ve_la_bandeja_vacia(self):
         self.assertEqual(self.ids_en_bandeja(self.ajeno), [])
+
+    def test_bandeja_muestra_con_quien_se_habla_sin_el_apellido_del_jugador(self):
+        # Same privacy as the public profile: the scout never gets the full name.
+        Jugador.objects.filter(pk=self.jugador.pk).update(nombre="Iker Martínez Ruiz")
+        Ojeador.objects.filter(pk=self.ojeador.pk).update(nombre="Ana Ruiz")
+        self.client.force_authenticate(self.ojeador.usuario)
+
+        response = self.client.get(LISTA_URL)
+
+        [conversacion] = response.json()["results"]
+        self.assertEqual(conversacion["jugador_nombre"], "Iker M.")
+        self.assertEqual(conversacion["ojeador_nombre"], "Ana Ruiz")
 
 
 class LeerHiloTests(ConversacionExistenteTestCase):
