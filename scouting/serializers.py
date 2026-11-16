@@ -12,15 +12,23 @@ class OjeadorSerializer(serializers.ModelSerializer):
 
 
 class JugadorSerializer(serializers.ModelSerializer):
-    posicion_display =serializers.CharField(source="get_posicion_display", read_only=True)
+    """Full profile for its owner; a trimmed public profile for everyone else.
+
+    The public profile must not give a scout what they need to contact the
+    player outside the platform, where contacts are not counted or moderated.
+    The owner is never sent in the payload: it comes from the request.
+    """
+
+    posicion_display = serializers.CharField(source="get_posicion_display", read_only=True)
+    edad = serializers.SerializerMethodField()
 
     class Meta:
         model = Jugador
         fields = [
             "id",
-            "usuario",
             "nombre",
             "fecha_nacimiento",
+            "edad",
             "posicion",
             "posicion_display",
             "pierna_dominante",
@@ -28,8 +36,25 @@ class JugadorSerializer(serializers.ModelSerializer):
             "club_actual",
             "disponible",
             "foto",
-            "bio",
             "creado",
         ]
-        # The owner comes from the authenticated request, never from the payload.
-        read_only_fields = ["usuario", "creado"]
+        read_only_fields = ["creado"]
+
+    def get_edad(self, jugador):
+        return jugador.edad()
+
+    def to_representation(self, jugador):
+        data = super().to_representation(jugador)
+        if not self._es_dueno(jugador):
+            data["nombre"] = jugador.nombre_publico()
+            del data["fecha_nacimiento"]
+        return data
+
+    def _es_dueno(self, jugador):
+        # No request (scripts, other serializers) fails closed to the public profile.
+        request = self.context.get("request")
+        return (
+            request is not None
+            and request.user.is_authenticated
+            and request.user.pk == jugador.usuario_id
+        )

@@ -14,16 +14,16 @@ DATOS_JUGADOR = {
 
 
 class JugadorSerializerLecturaTests(TestCase):
-    def test_serializer_expone_solo_datos_descriptivos(self):
+    def test_sin_request_expone_solo_el_perfil_publico(self):
+        # No request means nobody can be the owner: fail closed to the public view.
         data = JugadorSerializer(crear_jugador()).data
 
         self.assertEqual(
             set(data.keys()),
             {
                 "id",
-                "usuario",
                 "nombre",
-                "fecha_nacimiento",
+                "edad",
                 "posicion",
                 "posicion_display",
                 "pierna_dominante",
@@ -31,7 +31,6 @@ class JugadorSerializerLecturaTests(TestCase):
                 "club_actual",
                 "disponible",
                 "foto",
-                "bio",
                 "creado",
             },
         )
@@ -55,3 +54,11 @@ class JugadorSerializerEscrituraTests(TestCase):
         jugador = serializer.save(usuario=self.usuario)
 
         self.assertEqual(jugador.usuario, self.usuario)
+
+    def test_no_guarda_una_bio_enviada_por_el_cliente(self):
+        serializer = JugadorSerializer(data={**DATOS_JUGADOR, "bio": "Llámame al 600123456"})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        jugador = serializer.save(usuario=self.usuario)
+
+        self.assertFalse(hasattr(jugador, "bio"))

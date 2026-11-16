@@ -11,7 +11,9 @@ class JugadorViewSet(viewsets.ModelViewSet):
     serializer_class = JugadorSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     filterset_fields = ["posicion", "pierna_dominante", "disponible", "zona"]
-    search_fields = ["nombre", "zona", "club_actual"]
+    # Not "nombre": searching the stored full name would confirm the surname
+    # that the public profile hides.
+    search_fields = ["zona", "club_actual"]
 
     def perform_create(self, serializer):
         guardar_perfil_exclusivo(serializer, self.request.user)

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.conf import settings
 # Create your models here.
@@ -29,7 +31,6 @@ class Jugador (models.Model):
     club_actual = models.CharField(max_length=100, blank=True)
     disponible = models.BooleanField(default=True)
     foto = models.ImageField(upload_to="jugadores/fotos/", blank=True, null=True)
-    bio = models.CharField(max_length=280, blank=True)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -37,6 +38,18 @@ class Jugador (models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.get_posicion_display()})"
+
+    def nombre_publico(self):
+        """First name plus surname initial: "Iker Martínez Ruiz" -> "Iker M."."""
+        partes = self.nombre.split()
+        if len(partes) < 2:
+            return " ".join(partes)
+        return f"{partes[0]} {partes[1][0].upper()}."
+
+    def edad(self, hoy=None):
+        hoy = hoy or date.today()
+        cumplio = (hoy.month, hoy.day) >= (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        return hoy.year - self.fecha_nacimiento.year - (0 if cumplio else 1)
 
 
 class Ojeador(models.Model):
