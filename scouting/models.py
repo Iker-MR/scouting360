@@ -72,3 +72,31 @@ class Ojeador(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
+class Conversacion(models.Model):
+    """A thread a scout starts with a player. Each one spends free-plan quota."""
+
+    ojeador = models.ForeignKey(Ojeador, on_delete=models.CASCADE, related_name="conversaciones")
+    jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE, related_name="conversaciones")
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-creada"]
+        verbose_name_plural = "conversaciones"
+        constraints = [
+            models.UniqueConstraint(fields=["ojeador", "jugador"], name="conversacion_unica_por_par"),
+        ]
+
+    def __str__(self):
+        return f"{self.ojeador} → {self.jugador}"
+
+
+class Mensaje(models.Model):
+    conversacion = models.ForeignKey(Conversacion, on_delete=models.CASCADE, related_name="mensajes")
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mensajes")
+    texto = models.TextField()
+    enviado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["enviado"]

@@ -5,11 +5,10 @@ from django.contrib.auth import get_user_model
 from .models import Jugador, Ojeador
 
 
-def crear_ojeador(username="ojeador1"):
+def crear_ojeador(username="ojeador1", **campos):
     usuario = get_user_model().objects.create_user(username=username, password="x")
-    return Ojeador.objects.create(
-        usuario=usuario, nombre="Test", organizacion="CD Ejemplo"
-    )
+    datos = {"nombre": "Test", "organizacion": "CD Ejemplo", **campos}
+    return Ojeador.objects.create(usuario=usuario, **datos)
 
 
 def crear_jugador(username="jugador1", **campos):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Jugador, Ojeador
+from .models import Conversacion, Jugador, Ojeador
 
 
 def es_dueno(context, usuario_id):
@@ -67,3 +67,14 @@ class JugadorSerializer(serializers.ModelSerializer):
             data["nombre"] = jugador.nombre_publico()
             del data["fecha_nacimiento"]
         return data
+
+
+class IniciarConversacionSerializer(serializers.ModelSerializer):
+    """Input: the player and the first message. The scout comes from the request."""
+
+    texto = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Conversacion
+        fields = ["id", "jugador", "texto", "creada"]
+        read_only_fields = ["creada"]
