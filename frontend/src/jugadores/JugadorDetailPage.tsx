@@ -2,7 +2,7 @@ import { Link, useLocation, useParams } from 'react-router'
 import { useAuth } from '../auth/useAuth'
 import { JugadorDetail } from './components/JugadorDetail'
 import { useJugador } from './hooks/useJugador'
-import { parseId } from './utils/parseId'
+import { parseId } from '../shared/parseId'
 
 // The list link passes its query string so filters survive the round trip.
 function listPath(state: unknown) {

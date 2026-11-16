@@ -4,7 +4,7 @@ import { useAuth } from '../auth/useAuth'
 import { JugadorValidationError, updateJugador, type Jugador } from './api/jugadoresApi'
 import { JugadorForm, type JugadorFormValues } from './components/JugadorForm'
 import { useJugador } from './hooks/useJugador'
-import { parseId } from './utils/parseId'
+import { parseId } from '../shared/parseId'
 
 function toFormValues(jugador: Jugador): JugadorFormValues {
   return {
