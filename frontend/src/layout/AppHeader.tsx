@@ -5,7 +5,7 @@ import { useAuth } from '../auth/useAuth'
 /** Roles are exclusive, so a user sees the links of their role or the way to pick one. */
 function ProfileLinks({ user }: { user: CurrentUser }) {
   if (user.jugador_id !== null) return <Link to={`/jugadores/${user.jugador_id}`}>Mi perfil</Link>
-  if (user.ojeador_id !== null) return <span className="app-header__role">Ojeador</span>
+  if (user.ojeador_id !== null) return <Link to={`/ojeadores/${user.ojeador_id}`}>Mi perfil</Link>
   return (
     <>
       <Link to="/jugadores/nuevo">Crear mi perfil</Link>

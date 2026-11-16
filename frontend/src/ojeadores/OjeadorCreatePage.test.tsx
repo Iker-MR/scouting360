@@ -102,7 +102,10 @@ describe('OjeadorCreatePage creación', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Jugadores' })).toBeInTheDocument()
     // The header knows the new role without refetching /me.
-    expect(screen.getByText('Ojeador')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Mi perfil' })).toHaveAttribute(
+      'href',
+      '/ojeadores/9',
+    )
     expect(screen.queryByRole('link', { name: 'Soy ojeador' })).not.toBeInTheDocument()
     expect(posts).toEqual([{ nombre: 'Ana Ruiz', organizacion: 'CD Ejemplo' }])
   })

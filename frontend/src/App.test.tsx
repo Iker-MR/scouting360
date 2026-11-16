@@ -296,16 +296,18 @@ describe('Cabecera: enlaces de perfil', () => {
     expect(screen.queryByRole('link', { name: 'Soy ojeador' })).not.toBeInTheDocument()
   })
 
-  it('muestra el rol al ojeador y no le ofrece crear ningún perfil', async () => {
+  it('enlaza al ojeador con su perfil y no le ofrece crear ningún perfil', async () => {
     mockRefresh('valid')
     mockMe({ ojeador_id: 9 })
     renderAt()
 
     // Positive signal: /me has answered, so the absences below are final.
-    expect(await screen.findByText('Ojeador')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Mi perfil' })).toHaveAttribute(
+      'href',
+      '/ojeadores/9',
+    )
     expect(screen.queryByRole('link', { name: 'Crear mi perfil' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Soy ojeador' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument()
   })
 
   it('no muestra enlaces de perfil mientras carga el usuario', async () => {

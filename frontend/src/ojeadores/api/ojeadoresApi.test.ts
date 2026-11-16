@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { server } from '../../test/server'
-import { createOjeador, OjeadorValidationError } from './ojeadoresApi'
+import { buildOjeador } from '../../test/ojeadoresMocks'
+import { createOjeador, getOjeador, OjeadorNotFoundError, OjeadorValidationError } from './ojeadoresApi'
 
 // The real fetch is enough here: auth headers and refresh are authFetch's job,
 // already covered by its own tests.
@@ -57,5 +58,46 @@ describe('createOjeador', () => {
 
     expect(error).toBeInstanceOf(Error)
     expect(error).not.toBeInstanceOf(OjeadorValidationError)
+  })
+})
+
+describe('getOjeador', () => {
+  it('pide el ojeador con un GET y lo devuelve', async () => {
+    const ojeador = buildOjeador({ id: 9, verificado: true })
+    let method: string | null = null
+    server.use(
+      http.get('/api/ojeadores/9/', ({ request }) => {
+        method = request.method
+        return HttpResponse.json(ojeador)
+      }),
+    )
+
+    const result = await getOjeador(fetcher, 9)
+
+    expect(result).toEqual(ojeador)
+    expect(method).toBe('GET')
+  })
+
+  it('lanza OjeadorNotFoundError si el servidor responde 404', async () => {
+    server.use(
+      http.get('/api/ojeadores/9/', () =>
+        HttpResponse.json({ detail: 'No encontrado.' }, { status: 404 }),
+      ),
+    )
+
+    const error = await getOjeador(fetcher, 9).catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(OjeadorNotFoundError)
+  })
+
+  it('lanza un error genérico si el servidor responde 500', async () => {
+    server.use(
+      http.get('/api/ojeadores/9/', () => HttpResponse.json({ detail: 'Error' }, { status: 500 })),
+    )
+
+    const error = await getOjeador(fetcher, 9).catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).not.toBeInstanceOf(OjeadorNotFoundError)
   })
 })

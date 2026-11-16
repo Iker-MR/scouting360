@@ -10,6 +10,21 @@ export interface Ojeador {
 
 export type OjeadorDatos = Pick<Ojeador, 'nombre' | 'organizacion'>
 
+export class OjeadorNotFoundError extends Error {
+  constructor() {
+    super('Ojeador not found')
+    this.name = 'OjeadorNotFoundError'
+  }
+}
+
+/** Requires a session: the backend answers 401 to anonymous visitors. */
+export async function getOjeador(fetcher: AuthFetch, id: number): Promise<Ojeador> {
+  const response = await fetcher(`/api/ojeadores/${id}/`)
+  if (response.status === 404) throw new OjeadorNotFoundError()
+  if (!response.ok) throw new Error(`Failed to load ojeador (${response.status})`)
+  return (await response.json()) as Ojeador
+}
+
 /** DRF validation failure (400), keyed by field name. */
 export class OjeadorValidationError extends Error {
   readonly fieldErrors: Record<string, string[]>
