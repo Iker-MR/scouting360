@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { PIERNAS, type Jugador } from '../api/jugadoresApi'
-import { calcularEdad } from '../utils/calcularEdad'
 import { initials } from './initials'
 
 interface JugadorDetailProps {
@@ -10,7 +9,7 @@ interface JugadorDetailProps {
 }
 
 export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
-  const edad = calcularEdad(jugador.fecha_nacimiento)
+  const { edad } = jugador
 
   return (
     <article className="jugador-detail">
@@ -58,12 +57,6 @@ export function JugadorDetail({ jugador, editPath }: JugadorDetailProps) {
         </div>
       </dl>
 
-      {jugador.bio && (
-        <section>
-          <h2>Biografía</h2>
-          <p>{jugador.bio}</p>
-        </section>
-      )}
     </article>
   )
 }

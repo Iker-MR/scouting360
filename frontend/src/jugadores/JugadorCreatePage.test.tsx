@@ -140,7 +140,6 @@ describe('JugadorCreatePage creación', () => {
         zona: 'Bilbao',
         club_actual: '',
         disponible: true,
-        bio: '',
       },
     ])
   })

@@ -160,17 +160,6 @@ export function JugadorForm({
         {fieldError('disponible')}
       </div>
 
-      <div>
-        <label htmlFor={inputId('bio')}>Biografía</label>
-        <textarea
-          {...a11y('bio')}
-          rows={4}
-          value={values.bio}
-          onChange={(event) => set('bio', event.target.value)}
-        />
-        {fieldError('bio')}
-      </div>
-
       <button type="submit" disabled={submitting}>
         {submitting ? 'Guardando...' : submitLabel}
       </button>

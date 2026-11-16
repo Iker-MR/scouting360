@@ -10,7 +10,6 @@ const valores: JugadorFormValues = {
   zona: 'Madrid',
   club_actual: 'CD Ejemplo',
   disponible: true,
-  bio: 'Mediocentro creativo.',
 }
 
 function renderForm(props: Partial<Parameters<typeof JugadorForm>[0]> = {}) {
@@ -32,7 +31,7 @@ describe('JugadorForm', () => {
     expect(screen.getByLabelText('Zona')).toHaveValue('Madrid')
     expect(screen.getByLabelText('Club actual')).toHaveValue('CD Ejemplo')
     expect(screen.getByLabelText('Disponible')).toBeChecked()
-    expect(screen.getByLabelText('Biografía')).toHaveValue('Mediocentro creativo.')
+    expect(screen.queryByLabelText('Biografía')).not.toBeInTheDocument()
   })
 
   it('envía los valores editados al guardar', async () => {

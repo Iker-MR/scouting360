@@ -32,7 +32,8 @@ function renderAt(route: string) {
  * Returns the body of every PATCH received.
  */
 function mockEditableJugador(overrides: Partial<Jugador> = {}) {
-  let jugador = buildJugador({ id: 41, nombre: 'Ana Ruiz', ...overrides })
+  // The owner's payload: full name and birth date.
+  let jugador = buildJugador({ id: 41, nombre: 'Ana Ruiz', fecha_nacimiento: '2005-04-12', ...overrides })
   const patches: unknown[] = []
   mockJugador(41, () => HttpResponse.json(jugador))
   server.use(
@@ -99,6 +100,7 @@ describe('JugadorEditPage edición', () => {
       await screen.findByRole('heading', { level: 1, name: 'Editar perfil' }),
     ).toBeInTheDocument()
     expect(await screen.findByLabelText('Nombre')).toHaveValue('Ana Ruiz')
+    expect(screen.getByLabelText('Fecha de nacimiento')).toHaveValue('2005-04-12')
     expect(screen.getByLabelText('Zona')).toHaveValue('Sevilla')
   })
 
@@ -117,6 +119,7 @@ describe('JugadorEditPage edición', () => {
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument()
     expect(patches).toEqual([expect.objectContaining({ nombre: 'Ana María Ruiz' })])
+    expect(patches[0]).not.toHaveProperty('bio')
   })
 
   it('muestra los errores de validación del servidor', async () => {

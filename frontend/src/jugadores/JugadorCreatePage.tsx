@@ -14,7 +14,6 @@ const EMPTY_VALUES: JugadorFormValues = {
   club_actual: '',
   // Mirrors the backend default.
   disponible: true,
-  bio: '',
 }
 
 /**

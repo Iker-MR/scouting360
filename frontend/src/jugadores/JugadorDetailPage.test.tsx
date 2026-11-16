@@ -46,7 +46,7 @@ describe('Detalle de jugador', () => {
           club_actual: 'Betis B',
           disponible: true,
           foto: 'http://localhost/ana.jpg',
-          bio: 'Delantera rápida.',
+          edad: 23,
         }),
       ),
     )
@@ -58,12 +58,11 @@ describe('Detalle de jugador', () => {
       'http://localhost/ana.jpg',
     )
     expect(screen.getByText('Delantero centro')).toBeInTheDocument()
-    expect(screen.getByText(/\d+ años/)).toBeInTheDocument()
+    expect(screen.getByText('23 años')).toBeInTheDocument()
     expect(screen.getByText('Zurda')).toBeInTheDocument()
     expect(screen.getByText('Sevilla')).toBeInTheDocument()
     expect(screen.getByText('Betis B')).toBeInTheDocument()
     expect(screen.getByText('Disponible')).toBeInTheDocument()
-    expect(screen.getByText('Delantera rápida.')).toBeInTheDocument()
   })
 
   it('muestra las iniciales, "Sin club", "No disponible" y "Derecha" cuando faltan datos', async () => {
@@ -89,19 +88,12 @@ describe('Detalle de jugador', () => {
     expect(screen.getByText('Derecha')).toBeInTheDocument()
   })
 
-  it('calcula la edad a partir de la fecha de nacimiento', async () => {
-    vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 3, 11) })
-    try {
-      mockJugador(4, () =>
-        HttpResponse.json(buildJugador({ id: 4, fecha_nacimiento: '2005-04-12' })),
-      )
-      renderAt('/jugadores/4')
+  it('muestra la edad que calcula el servidor, sin necesitar la fecha de nacimiento', async () => {
+    // Public profiles carry no birth date: the age must come from the API.
+    mockJugador(4, () => HttpResponse.json(buildJugador({ id: 4, edad: 1 })))
+    renderAt('/jugadores/4')
 
-      // The day before the 21st birthday: still 20.
-      expect(await screen.findByText('20 años')).toBeInTheDocument()
-    } finally {
-      vi.useRealTimers()
-    }
+    expect(await screen.findByText('1 año')).toBeInTheDocument()
   })
 
   it('muestra solo datos descriptivos, sin atributos ni valoración global', async () => {
@@ -121,19 +113,15 @@ describe('Detalle de jugador', () => {
     expect(screen.queryByText('87')).not.toBeInTheDocument()
   })
 
-  it('sin bio no muestra la sección', async () => {
-    mockJugador(8, () => HttpResponse.json(buildJugador({ id: 8, bio: '' })))
+  it('no muestra biografía aunque el servidor la envíe', async () => {
+    // A stale API sending a bio must not leak contact data onto the page.
+    const conBio = { ...buildJugador({ id: 8 }), bio: 'Llámame al 600123456' }
+    mockJugador(8, () => HttpResponse.json(conBio))
     renderAt('/jugadores/8')
 
     await screen.findByRole('heading', { level: 1 })
     expect(screen.queryByRole('heading', { name: 'Biografía' })).not.toBeInTheDocument()
-  })
-
-  it('con bio muestra la sección de biografía', async () => {
-    mockJugador(9, () => HttpResponse.json(buildJugador({ id: 9, bio: 'Un texto.' })))
-    renderAt('/jugadores/9')
-
-    expect(await screen.findByRole('heading', { name: 'Biografía' })).toBeInTheDocument()
+    expect(screen.queryByText('Llámame al 600123456')).not.toBeInTheDocument()
   })
 
   it('muestra el estado de carga mientras espera la respuesta', async () => {
@@ -288,7 +276,7 @@ describe('Navegación entre listado y detalle', () => {
   it('clic en la tarjeta navega al detalle', async () => {
     mockJugadores(() => pageResponse([buildJugador({ id: 31, nombre: 'Ana Ruiz' })]))
     mockJugador(31, () =>
-      HttpResponse.json(buildJugador({ id: 31, nombre: 'Ana Ruiz', bio: 'Bio de Ana.' })),
+      HttpResponse.json(buildJugador({ id: 31, nombre: 'Ana Ruiz' })),
     )
     const user = userEvent.setup()
     renderAt('/jugadores')
@@ -296,7 +284,8 @@ describe('Navegación entre listado y detalle', () => {
     const card = (await screen.findByText('Ana Ruiz')).closest('article')!
     await user.click(within(card).getByRole('link', { name: 'Ana Ruiz' }))
 
-    expect(await screen.findByText('Bio de Ana.')).toBeInTheDocument()
+    // Only the detail page has this link.
+    expect(await screen.findByRole('link', { name: 'Volver al listado' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Ana Ruiz' })).toBeInTheDocument()
   })
 

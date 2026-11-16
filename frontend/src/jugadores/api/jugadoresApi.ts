@@ -23,9 +23,11 @@ export const PIERNAS: Record<PiernaDominante, string> = {
 
 export interface Jugador {
   id: number
-  usuario: number
+  /** Full name for the owner; first name plus surname initial for everyone else. */
   nombre: string
-  fecha_nacimiento: string
+  /** Owner only: public profiles carry the age instead. */
+  fecha_nacimiento?: string
+  edad: number
   posicion: Posicion
   posicion_display: string
   pierna_dominante: PiernaDominante
@@ -33,7 +35,6 @@ export interface Jugador {
   club_actual: string
   disponible: boolean
   foto: string | null
-  bio: string
   creado: string
 }
 
@@ -90,7 +91,9 @@ export async function getJugador(fetcher: AuthFetch, id: number): Promise<Jugado
  * Choices may be '' (nothing picked yet): the server rejects it with a 400.
  */
 export type JugadorCambios = Partial<
-  Pick<Jugador, 'nombre' | 'fecha_nacimiento' | 'zona' | 'club_actual' | 'disponible' | 'bio'> & {
+  Pick<Jugador, 'nombre' | 'zona' | 'club_actual' | 'disponible'> & {
+    // Required in the form even though public payloads omit it.
+    fecha_nacimiento: string
     posicion: Posicion | ''
     pierna_dominante: PiernaDominante | ''
   }

@@ -15,7 +15,6 @@ const DATOS_NUEVO = {
   zona: 'Bilbao',
   club_actual: '',
   disponible: true,
-  bio: '',
 } as const
 
 describe('createJugador', () => {

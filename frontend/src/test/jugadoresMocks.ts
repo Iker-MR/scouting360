@@ -4,13 +4,16 @@ import { server } from './server'
 
 let nextId = 1
 
+/**
+ * A public profile by default, as most viewers get it: age but no birth date.
+ * Owner tests pass `fecha_nacimiento` explicitly.
+ */
 export function buildJugador(overrides: Partial<Jugador> = {}): Jugador {
   const id = nextId++
   return {
     id,
-    usuario: id + 100,
     nombre: `Jugador ${id}`,
-    fecha_nacimiento: '2005-04-12',
+    edad: 20,
     posicion: 'MC',
     posicion_display: 'Mediocentro',
     pierna_dominante: 'D',
@@ -18,7 +21,6 @@ export function buildJugador(overrides: Partial<Jugador> = {}): Jugador {
     club_actual: 'CD Ejemplo',
     disponible: true,
     foto: null,
-    bio: '',
     creado: '2026-01-01T10:00:00Z',
     ...overrides,
   }

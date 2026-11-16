@@ -9,13 +9,13 @@ import { parseId } from '../shared/parseId'
 function toFormValues(jugador: Jugador): JugadorFormValues {
   return {
     nombre: jugador.nombre,
-    fecha_nacimiento: jugador.fecha_nacimiento,
+    // Always present for the owner, the only one who reaches this page.
+    fecha_nacimiento: jugador.fecha_nacimiento ?? '',
     posicion: jugador.posicion,
     pierna_dominante: jugador.pierna_dominante,
     zona: jugador.zona,
     club_actual: jugador.club_actual,
     disponible: jugador.disponible,
-    bio: jugador.bio,
   }
 }
 
