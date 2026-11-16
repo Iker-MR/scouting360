@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth'
 import {
   ContactoBloqueadoError,
@@ -26,6 +26,8 @@ export function ContactarJugador({ jugadorId }: ContactarJugadorProps) {
   const navigate = useNavigate()
   const [abierto, setAbierto] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+  // Already talking to this player: point to the inbox instead of a dead end.
+  const [yaExiste, setYaExiste] = useState(false)
   const [errores, setErrores] = useState<string[]>([])
 
   async function handleEnviar(texto: string) {
@@ -35,6 +37,7 @@ export function ContactarJugador({ jugadorId }: ContactarJugadorProps) {
       return true
     } catch (error) {
       setErrores([])
+      setYaExiste(false)
       if (error instanceof ContactoBloqueadoError) {
         setAviso(AVISO_POR_CODIGO[error.code] ?? AVISO_GENERICO)
       } else if (error instanceof ConversacionValidationError && error.fieldErrors.texto) {
@@ -42,6 +45,7 @@ export function ContactarJugador({ jugadorId }: ContactarJugadorProps) {
         setErrores(error.fieldErrors.texto)
       } else if (error instanceof ConversacionValidationError && error.fieldErrors.jugador) {
         setAviso(error.fieldErrors.jugador.join(' '))
+        setYaExiste(true)
       } else {
         setAviso(AVISO_GENERICO)
       }
@@ -60,9 +64,10 @@ export function ContactarJugador({ jugadorId }: ContactarJugadorProps) {
   return (
     <div className="contactar-jugador">
       {aviso && (
-        <p role="alert" className="contactar-jugador__aviso">
-          {aviso}
-        </p>
+        <div role="alert" className="contactar-jugador__aviso">
+          <p>{aviso}</p>
+          {yaExiste && <Link to="/conversaciones">Ver mis conversaciones</Link>}
+        </div>
       )}
       <MensajeComposer onEnviar={handleEnviar} errores={errores} />
     </div>

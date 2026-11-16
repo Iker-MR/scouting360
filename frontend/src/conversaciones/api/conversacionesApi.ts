@@ -1,4 +1,5 @@
 import type { AuthFetch } from '../../auth/api/authFetch'
+import type { Page } from '../../jugadores/api/jugadoresApi'
 
 /** Who wrote a message, as a role: the backend never exposes user ids. */
 export type RolAutor = 'ojeador' | 'jugador'
@@ -109,4 +110,21 @@ export async function iniciarConversacion(
   }
   if (!response.ok) throw new Error(`Failed to start conversacion (${response.status})`)
   return (await response.json()) as Conversacion
+}
+
+/** Inbox entry. `jugador_nombre` is the public name ("Iker M."), never the full one. */
+export interface ConversacionResumen {
+  id: number
+  ojeador: number
+  jugador: number
+  ojeador_nombre: string
+  jugador_nombre: string
+  creada: string
+}
+
+/** The user's conversations, as scout or as player. First page only for now. */
+export async function getConversaciones(fetcher: AuthFetch): Promise<Page<ConversacionResumen>> {
+  const response = await fetcher('/api/conversaciones/')
+  if (!response.ok) throw new Error(`Failed to load conversaciones (${response.status})`)
+  return (await response.json()) as Page<ConversacionResumen>
 }

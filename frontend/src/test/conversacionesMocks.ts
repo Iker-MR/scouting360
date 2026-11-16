@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import type { Mensaje } from '../conversaciones/api/conversacionesApi'
+import type { ConversacionResumen, Mensaje } from '../conversaciones/api/conversacionesApi'
+import type { Page } from '../jugadores/api/jugadoresApi'
 import { server } from './server'
 
 export function buildMensaje(overrides: Partial<Mensaje> = {}): Mensaje {
@@ -56,4 +57,39 @@ export function mockIniciarConversacion(
     }),
   )
   return bodies
+}
+
+export function buildConversacion(overrides: Partial<ConversacionResumen> = {}): ConversacionResumen {
+  return {
+    id: 4,
+    ojeador: 9,
+    jugador: 7,
+    ojeador_nombre: 'Ana Ruiz',
+    jugador_nombre: 'Iker M.',
+    creada: '2026-11-16T10:00:00Z',
+    ...overrides,
+  }
+}
+
+/** Mocks GET /api/conversaciones/ (paginated) and returns the URL of every request it receives. */
+export function mockConversaciones(
+  respond: () => Response | Promise<Response> = () => conversacionesPage([buildConversacion()]),
+) {
+  const requests: URL[] = []
+  server.use(
+    http.get('/api/conversaciones/', ({ request }) => {
+      requests.push(new URL(request.url))
+      return respond()
+    }),
+  )
+  return requests
+}
+
+export function conversacionesPage(results: ConversacionResumen[]) {
+  return HttpResponse.json<Page<ConversacionResumen>>({
+    count: results.length,
+    next: null,
+    previous: null,
+    results,
+  })
 }

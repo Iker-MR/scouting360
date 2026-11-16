@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { MemoryRouter } from 'react-router'
@@ -127,6 +127,11 @@ describe('Contactar envío', () => {
 
     await escribirYEnviar()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(AVISO_YA_EXISTE)
+    const aviso = await screen.findByRole('alert')
+    expect(aviso).toHaveTextContent(AVISO_YA_EXISTE)
+    expect(within(aviso).getByRole('link', { name: 'Ver mis conversaciones' })).toHaveAttribute(
+      'href',
+      '/conversaciones',
+    )
   })
 })
