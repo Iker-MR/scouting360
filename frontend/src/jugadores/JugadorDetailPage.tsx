@@ -1,5 +1,6 @@
 import { Link, useLocation, useParams } from 'react-router'
 import { useAuth } from '../auth/useAuth'
+import { ContactarJugador } from '../conversaciones/ContactarJugador'
 import { JugadorDetail } from './components/JugadorDetail'
 import { useJugador } from './hooks/useJugador'
 import { parseId } from '../shared/parseId'
@@ -17,8 +18,10 @@ export function JugadorDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const { data, status, retry } = useJugador(parseId(id))
-  const { user } = useAuth()
+  const { status: authStatus, user, userStatus } = useAuth()
   const back = <Link to={listPath(location.state)}>Volver al listado</Link>
+  // Profiles are public; only a known scout may start a conversation.
+  const esOjeador = authStatus === 'authenticated' && userStatus === 'ready' && user?.ojeador_id != null
 
   return (
     <section className="jugador-detail-page">
@@ -41,6 +44,8 @@ export function JugadorDetailPage() {
           editPath={user?.jugador_id === data.id ? `/jugadores/${data.id}/editar` : undefined}
         />
       )}
+
+      {status === 'success' && esOjeador && <ContactarJugador jugadorId={data.id} />}
 
       <p className="jugador-detail-page__back">{back}</p>
     </section>

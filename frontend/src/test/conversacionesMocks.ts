@@ -42,3 +42,18 @@ export function mockEnviarMensaje(
   )
   return bodies
 }
+
+/** Mocks POST /api/conversaciones/ and returns the JSON body of every request. */
+export function mockIniciarConversacion(
+  respond: (body: { jugador: number; texto: string }) => Response | Promise<Response>,
+) {
+  const bodies: Array<{ jugador: number; texto: string }> = []
+  server.use(
+    http.post('/api/conversaciones/', async ({ request }) => {
+      const body = (await request.json()) as { jugador: number; texto: string }
+      bodies.push(body)
+      return respond(body)
+    }),
+  )
+  return bodies
+}

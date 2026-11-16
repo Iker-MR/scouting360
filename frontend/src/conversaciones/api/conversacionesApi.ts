@@ -59,3 +59,54 @@ export async function enviarMensaje(
   if (!response.ok) throw new Error(`Failed to send mensaje (${response.status})`)
   return (await response.json()) as Mensaje
 }
+
+export interface Conversacion {
+  id: number
+  jugador: number
+  creada: string
+}
+
+/** The backend refused the contact (403). `code` says why; never branch on `detail` text. */
+export class ContactoBloqueadoError extends Error {
+  readonly code: string
+
+  constructor(code: string) {
+    super(`Contacto bloqueado (${code})`)
+    this.name = 'ContactoBloqueadoError'
+    this.code = code
+  }
+}
+
+/** DRF validation failure (400) when starting: `jugador` (already talking) or `texto`. */
+export class ConversacionValidationError extends Error {
+  readonly fieldErrors: Record<string, string[]>
+
+  constructor(fieldErrors: Record<string, string[]>) {
+    super('Invalid conversacion data')
+    this.name = 'ConversacionValidationError'
+    this.fieldErrors = fieldErrors
+  }
+}
+
+/** Starts a conversation with its first message. Scouts only; quota and minors rules apply. */
+export async function iniciarConversacion(
+  fetcher: AuthFetch,
+  jugadorId: number,
+  texto: string,
+): Promise<Conversacion> {
+  const response = await fetcher('/api/conversaciones/', {
+    method: 'POST',
+    // Without it DRF cannot parse the body and answers 415.
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jugador: jugadorId, texto }),
+  })
+  if (response.status === 403) {
+    const { code } = (await response.json()) as { code?: string }
+    throw new ContactoBloqueadoError(code ?? 'permission_denied')
+  }
+  if (response.status === 400) {
+    throw new ConversacionValidationError((await response.json()) as Record<string, string[]>)
+  }
+  if (!response.ok) throw new Error(`Failed to start conversacion (${response.status})`)
+  return (await response.json()) as Conversacion
+}
