@@ -5,6 +5,6 @@ from .views import ConversacionViewSet, JugadorViewSet, OjeadorViewSet
 router = DefaultRouter()
 router.register("jugadores", JugadorViewSet)
 router.register("ojeadores", OjeadorViewSet)
-router.register("conversaciones", ConversacionViewSet)
+router.register("conversaciones", ConversacionViewSet, basename="conversacion")
 
 urlpatterns = router.urls

@@ -1,10 +1,19 @@
-from rest_framework import mixins, permissions, viewsets
+from django.db.models import Q
+from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .contacto import iniciar_conversacion
 from .models import Conversacion, Jugador, Ojeador
 from .permissions import IsOwnerOrReadOnly
 from .roles import guardar_perfil_exclusivo
-from .serializers import IniciarConversacionSerializer, JugadorSerializer, OjeadorSerializer
+from .serializers import (
+    ConversacionSerializer,
+    IniciarConversacionSerializer,
+    JugadorSerializer,
+    MensajeSerializer,
+    OjeadorSerializer,
+)
 
 
 class JugadorViewSet(viewsets.ModelViewSet):
@@ -36,12 +45,26 @@ class OjeadorViewSet(
         guardar_perfil_exclusivo(serializer, self.request.user)
 
 
-class ConversacionViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """Scout -> player conversations. Only starting one for now (quota and minors rules)."""
+class ConversacionViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Scout <-> player conversations, visible only to their two participants."""
 
-    queryset = Conversacion.objects.all()
-    serializer_class = IniciarConversacionSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Outsiders get a 404, not a 403: they must not learn a conversation exists.
+        usuario = self.request.user
+        return Conversacion.objects.filter(
+            Q(ojeador__usuario=usuario) | Q(jugador__usuario=usuario)
+        )
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return IniciarConversacionSerializer
+        return ConversacionSerializer
 
     def perform_create(self, serializer):
         serializer.instance = iniciar_conversacion(
@@ -49,3 +72,15 @@ class ConversacionViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             jugador=serializer.validated_data["jugador"],
             texto=serializer.validated_data["texto"],
         )
+
+    @action(detail=True, methods=["get", "post"], serializer_class=MensajeSerializer)
+    def mensajes(self, request, pk=None):
+        conversacion = self.get_object()
+        if request.method == "GET":
+            mensajes = conversacion.mensajes.select_related("conversacion__ojeador")
+            return Response(MensajeSerializer(mensajes, many=True).data)
+        # Replies never spend quota: it counts conversations started, not messages.
+        serializer = MensajeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(conversacion=conversacion, autor=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -100,3 +100,7 @@ class Mensaje(models.Model):
 
     class Meta:
         ordering = ["enviado"]
+
+    def rol_autor(self):
+        """Who wrote it, as a role: the API never exposes user ids."""
+        return "ojeador" if self.autor_id == self.conversacion.ojeador.usuario_id else "jugador"

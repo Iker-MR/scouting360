@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Conversacion, Jugador, Ojeador
+from .models import Conversacion, Jugador, Mensaje, Ojeador
 
 
 def es_dueno(context, usuario_id):
@@ -78,3 +78,19 @@ class IniciarConversacionSerializer(serializers.ModelSerializer):
         model = Conversacion
         fields = ["id", "jugador", "texto", "creada"]
         read_only_fields = ["creada"]
+
+
+class ConversacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conversacion
+        fields = ["id", "ojeador", "jugador", "creada"]
+        read_only_fields = fields
+
+
+class MensajeSerializer(serializers.ModelSerializer):
+    autor = serializers.CharField(source="rol_autor", read_only=True)
+
+    class Meta:
+        model = Mensaje
+        fields = ["id", "autor", "texto", "enviado"]
+        read_only_fields = ["enviado"]

@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -153,3 +154,125 @@ class IniciarConversacionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("texto", response.data)
         self.assertFalse(Conversacion.objects.exists())
+
+
+def mensajes_url(conversacion):
+    return f"/api/conversaciones/{conversacion.pk}/mensajes/"
+
+
+class ConversacionExistenteTestCase(APITestCase):
+    """A scout already talking to a player, plus an outsider with no part in it."""
+
+    def setUp(self):
+        self.ojeador = crear_ojeador("ojeadora")
+        self.jugador = crear_jugador("jugadora")
+        self.conversacion = Conversacion.objects.create(ojeador=self.ojeador, jugador=self.jugador)
+        self.ajeno = crear_jugador("ajeno").usuario
+
+
+class BandejaTests(ConversacionExistenteTestCase):
+    def setUp(self):
+        super().setUp()
+        # Noise: a conversation between two other people.
+        self.otra = Conversacion.objects.create(
+            ojeador=crear_ojeador("otro_ojeador"), jugador=crear_jugador("otro_jugador")
+        )
+
+    def ids_en_bandeja(self, usuario):
+        self.client.force_authenticate(usuario)
+        response = self.client.get(LISTA_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [c["id"] for c in response.data["results"]]
+
+    def test_anonimo_no_ve_la_bandeja(self):
+        response = self.client.get(LISTA_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_ojeador_ve_solo_sus_conversaciones(self):
+        self.assertEqual(self.ids_en_bandeja(self.ojeador.usuario), [self.conversacion.pk])
+
+    def test_jugador_ve_solo_las_conversaciones_con_el(self):
+        self.assertEqual(self.ids_en_bandeja(self.jugador.usuario), [self.conversacion.pk])
+
+    def test_usuario_no_involucrado_ve_la_bandeja_vacia(self):
+        self.assertEqual(self.ids_en_bandeja(self.ajeno), [])
+
+
+class LeerHiloTests(ConversacionExistenteTestCase):
+    def setUp(self):
+        super().setUp()
+        ahora = timezone.now()
+        # Inserted newest first, so id order and chronological order differ.
+        respuesta = Mensaje.objects.create(
+            conversacion=self.conversacion, autor=self.jugador.usuario, texto="¡Sí, claro!"
+        )
+        primero = Mensaje.objects.create(
+            conversacion=self.conversacion, autor=self.ojeador.usuario, texto=TEXTO
+        )
+        Mensaje.objects.filter(pk=primero.pk).update(enviado=ahora - timedelta(hours=1))
+        Mensaje.objects.filter(pk=respuesta.pk).update(enviado=ahora)
+
+    def test_participante_ve_el_hilo_en_orden_cronologico(self):
+        self.client.force_authenticate(self.jugador.usuario)
+
+        response = self.client.get(mensajes_url(self.conversacion))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [(m["autor"], m["texto"]) for m in response.data],
+            [("ojeador", TEXTO), ("jugador", "¡Sí, claro!")],
+        )
+
+    def test_mensaje_no_expone_ids_de_usuario(self):
+        self.client.force_authenticate(self.ojeador.usuario)
+
+        response = self.client.get(mensajes_url(self.conversacion))
+
+        self.assertEqual(set(response.data[0]), {"id", "autor", "texto", "enviado"})
+
+    def test_ajeno_no_ve_el_hilo(self):
+        # 404, not 403: an outsider must not learn the conversation exists.
+        self.client.force_authenticate(self.ajeno)
+
+        response = self.client.get(mensajes_url(self.conversacion))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class ResponderTests(ConversacionExistenteTestCase):
+    def responder(self, usuario, texto="Gracias por escribir."):
+        self.client.force_authenticate(usuario)
+        return self.client.post(mensajes_url(self.conversacion), {"texto": texto}, format="json")
+
+    def test_jugador_responde(self):
+        response = self.responder(self.jugador.usuario)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["autor"], "jugador")
+        mensaje = Mensaje.objects.get()
+        self.assertEqual(mensaje.conversacion, self.conversacion)
+        self.assertEqual(mensaje.autor, self.jugador.usuario)
+
+    def test_responder_no_gasta_cupo(self):
+        # The quota counts conversations started, never messages.
+        for i in range(2):
+            Conversacion.objects.create(ojeador=self.ojeador, jugador=crear_jugador(f"lleno{i}"))
+
+        response = self.responder(self.ojeador.usuario)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["autor"], "ojeador")
+
+    def test_ajeno_no_puede_responder(self):
+        response = self.responder(self.ajeno)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(Mensaje.objects.exists())
+
+    def test_texto_vacio_no_se_envia(self):
+        response = self.responder(self.jugador.usuario, texto="")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("texto", response.data)
+        self.assertFalse(Mensaje.objects.exists())
