@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scouting.models import Jugador
+from scouting.models import Jugador, Ojeador
+from scouting.tests import crear_ojeador
 
 # Literal path on purpose: the frontend depends on this exact URL.
 ME_URL = "/api/auth/me/"
@@ -63,9 +64,28 @@ class MeTests(APITestCase):
 
         self.assertEqual(response.data["jugador_id"], perfil.pk)
 
+    def test_ojeador_id_es_null_si_no_es_ojeador(self):
+        self.client.force_authenticate(self.usuario)
+
+        response = self.client.get(ME_URL)
+
+        self.assertIn("ojeador_id", response.data)
+        self.assertIsNone(response.data["ojeador_id"])
+
+    def test_ojeador_id_es_el_de_su_perfil(self):
+        crear_ojeador("otro")
+        perfil = Ojeador.objects.create(usuario=self.usuario, nombre="Ana")
+        self.client.force_authenticate(self.usuario)
+
+        response = self.client.get(ME_URL)
+
+        self.assertEqual(response.data["ojeador_id"], perfil.pk)
+
     def test_no_expone_datos_sensibles(self):
         self.client.force_authenticate(self.usuario)
 
         response = self.client.get(ME_URL)
 
-        self.assertEqual(set(response.data), {"id", "username", "jugador_id"})
+        self.assertEqual(
+            set(response.data), {"id", "username", "jugador_id", "ojeador_id"}
+        )

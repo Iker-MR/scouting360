@@ -38,13 +38,21 @@ class RegistroSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     jugador_id = serializers.SerializerMethodField()
+    ojeador_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "jugador_id"]
+        fields = ["id", "username", "jugador_id", "ojeador_id"]
 
     def get_jugador_id(self, user):
-        # A user without a profile raises RelatedObjectDoesNotExist, which is
-        # also an AttributeError, so getattr's default covers it.
-        jugador = getattr(user, "jugador", None)
-        return jugador.pk if jugador else None
+        return _perfil_id(user, "jugador")
+
+    def get_ojeador_id(self, user):
+        return _perfil_id(user, "ojeador")
+
+
+def _perfil_id(user, relacion):
+    # A user without that profile raises RelatedObjectDoesNotExist, which is
+    # also an AttributeError, so getattr's default covers it.
+    perfil = getattr(user, relacion, None)
+    return perfil.pk if perfil else None

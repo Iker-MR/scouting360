@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from .models import Jugador
+from .models import Jugador, Ojeador
+
+
+class OjeadorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ojeador
+        fields = ["id", "nombre", "organizacion", "verificado"]
+        # Verification is a staff decision made in the admin, never by the scout.
+        read_only_fields = ["verificado"]
 
 
 class JugadorSerializer(serializers.ModelSerializer):

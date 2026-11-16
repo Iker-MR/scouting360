@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import Jugador
-from .tests import crear_jugador
+from .tests import crear_jugador, crear_ojeador
 
 LISTA_URL = reverse("jugador-list")
 
@@ -82,6 +82,16 @@ class JugadorCreacionTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Jugador.objects.count(), 1)
+
+    def test_un_ojeador_no_puede_ser_jugador(self):
+        ojeador = crear_ojeador("ojeadora")
+        self.client.force_authenticate(ojeador.usuario)
+
+        response = self.client.post(LISTA_URL, DATOS_JUGADOR, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("usuario", response.data)
+        self.assertFalse(Jugador.objects.exists())
 
     def test_carrera_al_crear_perfil_devuelve_400(self):
         # Simulates two concurrent requests: the pre-check does not see the

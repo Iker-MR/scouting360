@@ -37,3 +37,19 @@ class Jugador (models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.get_posicion_display()})"
+
+
+class Ojeador(models.Model):
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ojeador")
+    nombre = models.CharField(max_length=100)
+    organizacion = models.CharField(max_length=100, blank=True)
+    # Only staff can verify a scout (admin); the API never writes this field.
+    verificado = models.BooleanField(default=False)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-creado"]
+        verbose_name_plural = "ojeadores"
+
+    def __str__(self):
+        return self.nombre

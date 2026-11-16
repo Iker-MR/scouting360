@@ -1,10 +1,9 @@
-from django.db import IntegrityError, transaction
-from rest_framework import permissions, viewsets
-from rest_framework.exceptions import ValidationError
+from rest_framework import mixins, permissions, viewsets
 
-from .models import Jugador
+from .models import Jugador, Ojeador
 from .permissions import IsOwnerOrReadOnly
-from .serializers import JugadorSerializer
+from .roles import guardar_perfil_exclusivo
+from .serializers import JugadorSerializer, OjeadorSerializer
 
 
 class JugadorViewSet(viewsets.ModelViewSet):
@@ -15,11 +14,20 @@ class JugadorViewSet(viewsets.ModelViewSet):
     search_fields = ["nombre", "zona", "club_actual"]
 
     def perform_create(self, serializer):
-        # Each user owns at most one player profile (OneToOne on usuario).
-        # The DB unique constraint is the source of truth: a pre-check with
-        # exists() would still race with concurrent requests.
-        try:
-            with transaction.atomic():
-                serializer.save(usuario=self.request.user)
-        except IntegrityError:
-            raise ValidationError({"usuario": "Este usuario ya tiene un perfil de jugador."})
+        guardar_perfil_exclusivo(serializer, self.request.user)
+
+
+class OjeadorViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Scout profiles. No list on purpose: we do not publish a scout directory."""
+
+    queryset = Ojeador.objects.all()
+    serializer_class = OjeadorSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        guardar_perfil_exclusivo(serializer, self.request.user)
