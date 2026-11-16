@@ -153,6 +153,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'register': '5/hour',
     },
+    # Adds the error code to {"detail": ...} bodies so the frontend can branch on it.
+    'EXCEPTION_HANDLER': 'config.exceptions.exception_handler_con_codigo',
 }
 
 SIMPLE_JWT = {

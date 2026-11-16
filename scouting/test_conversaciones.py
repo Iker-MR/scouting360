@@ -146,6 +146,22 @@ class IniciarConversacionTests(APITestCase):
         self.assertIn("jugador", response.data)
         self.assertEqual(Conversacion.objects.count(), 3)
 
+    def test_el_json_de_cupo_agotado_lleva_el_codigo(self):
+        # response.data keeps ErrorDetail.code in Python; the frontend only gets the JSON.
+        self.llenar_cupo(self.ojeador)
+        self.client.force_authenticate(self.ojeador.usuario)
+
+        response = self.iniciar(self.adulto)
+
+        self.assertEqual(response.json()["code"], "cupo_agotado")
+
+    def test_el_json_de_requiere_verificacion_lleva_el_codigo(self):
+        self.client.force_authenticate(self.ojeador.usuario)
+
+        response = self.iniciar(self.menor)
+
+        self.assertEqual(response.json()["code"], "requiere_verificacion")
+
     def test_texto_vacio_no_inicia_conversacion(self):
         self.client.force_authenticate(self.ojeador.usuario)
 
